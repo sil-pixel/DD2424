@@ -1,6 +1,7 @@
 import copy
 import pickle
 import numpy as np
+import matplotlib.pyplot as plt
 
 from torch_gradient_computations import ComputeL2GradsWithTorch
 
@@ -120,7 +121,7 @@ def BackwardPass(X, Y, P, network, lam):
     grads['b'] = dL_db
     return grads
 
-grads = BackwardPass(trainX[:, 0:100], trainY[:, 0:100], P, init_net, 0)
+#grads = BackwardPass(trainX[:, 0:100], trainY[:, 0:100], P, init_net, 0)
 
 #####################################################################################################
 
@@ -205,20 +206,43 @@ GDparams = {
     'eta': 0.001,
     'n_epochs': 40
 }
-lam = 0
+lam = 1
 seed = 42
 rng = np.random.default_rng(seed)
 [trained_net, train_loss_history] = MiniBatchGD(trainX, trainY, trainy, GDparams, init_net, lam, rng)
+[trained_net_val, val_loss_history] = MiniBatchGD(valX, valY, valy, GDparams, init_net, lam, rng)
 
-
-import matplotlib.pyplot as plt
+# Plot the loss curves
 
 epochs = range(1, len(train_loss_history) + 1)
-
 plt.plot(epochs, train_loss_history, label="Training Loss", color='green')
+plt.plot(epochs, val_loss_history, label="Validation Loss")
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.title("Training Loss Over Epochs")
 plt.legend()
 plt.grid(True)
+plt.savefig("loss_plot.jpg")
+plt.show()
+
+#####################################################################################################
+
+# Visualise W matrix
+
+
+Ws = trained_net['W'].transpose().reshape((32, 32, 3, 10), order='F')
+W_im = np.transpose(Ws, (1, 0, 2, 3))
+# Plot all 10 filters side by side
+fig, axes = plt.subplots(1, 10, figsize=(15, 2))
+for i in range(10):
+    w_im = W_im[:, :, :, i]
+    w_im_norm = (w_im - np.min(w_im)) / (np.max(w_im) - np.min(w_im))
+    axes[i].imshow(w_im_norm)
+    axes[i].axis('off')  # hide axes
+
+# Adjust spacing
+plt.tight_layout()
+
+# Save the figure with all 10 filters
+plt.savefig("filters_all_in_one.png", dpi=300)
 plt.show()
