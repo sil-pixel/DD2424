@@ -164,10 +164,24 @@ for key, val in rel_errs.items():
 
 #####################################################################################################
 
+# Compute cost function
+def ComputeCost(P, y, W, lam):
+    n = P.shape[1]
+    # Cross-entropy loss
+    log_probs = -np.log(P[y, np.arange(n)] + 1e-15)
+    loss = np.mean(log_probs)
+    # L2 regularization
+    reg_term = lam * np.sum(W**2)
+    cost = loss + reg_term
+    return cost
+
+#####################################################################################################
+
 # Q8
 
 def MiniBatchGD(X, Y, y, GDparams, init_net, lam, rng):
     loss_history = []
+    cost_history = []
     trained_net = copy.deepcopy(init_net)
     n_batch = GDparams['n_batch']
     eta = GDparams['eta']
@@ -197,9 +211,11 @@ def MiniBatchGD(X, Y, y, GDparams, init_net, lam, rng):
         P_full = ApplyNetwork(X, trained_net)
         loss = ComputeLoss(P_full, y)
         loss_history.append(loss)
+        cost = ComputeCost(P_full, y, trained_net['W'], lam)
+        cost_history.append(cost)
         acc = ComputeAccuracy(P_full, y)
         print(f"Epoch {epoch + 1}/{n_epochs} - Loss: {loss:.4f}, Accuracy: {acc * 100:.2f}%")
-    return [trained_net, loss_history]
+    return [trained_net, loss_history, cost_history]
 
 GDparams = {
     'n_batch': 100,
@@ -209,40 +225,52 @@ GDparams = {
 lam = 1
 seed = 42
 rng = np.random.default_rng(seed)
-[trained_net, train_loss_history] = MiniBatchGD(trainX, trainY, trainy, GDparams, init_net, lam, rng)
-[trained_net_val, val_loss_history] = MiniBatchGD(valX, valY, valy, GDparams, init_net, lam, rng)
+#[trained_net, train_loss_history, train_cost_history] = MiniBatchGD(trainX, trainY, trainy, GDparams, init_net, lam, rng)
+#[val_net, val_loss_history, val_cost_history] = MiniBatchGD(valX, valY, valy, GDparams, init_net, lam, rng)
+[tested_net, test_loss_history, test_cost_history] = MiniBatchGD(testX, testY, testy, GDparams, init_net, lam, rng)
 
 # Plot the loss curves
 
-epochs = range(1, len(train_loss_history) + 1)
-plt.plot(epochs, train_loss_history, label="Training Loss", color='green')
-plt.plot(epochs, val_loss_history, label="Validation Loss")
-plt.xlabel("Epoch")
-plt.ylabel("Loss")
-plt.title("Training Loss Over Epochs")
-plt.legend()
-plt.grid(True)
-plt.savefig("loss_plot.jpg")
-plt.show()
+# epochs = range(1, len(train_loss_history) + 1)
+# plt.plot(epochs, train_loss_history, label="Training Loss", color='green')
+# plt.plot(epochs, val_loss_history, label="Validation Loss", color='blue')
+# plt.xlabel("Epoch")
+# plt.ylabel("Loss")
+# plt.title("Training Loss Over Epochs")
+# plt.legend()
+# plt.grid(True)
+# plt.savefig("loss_plot.jpg")
+# plt.show()
+#
+# plt.figure(figsize=(8, 5))
+# plt.plot(epochs, train_cost_history, label="Training Cost", color='green')
+# plt.plot(epochs, val_cost_history, label="Validation Cost", color='blue')
+# plt.xlabel("Epoch")
+# plt.ylabel("Cost")
+# plt.title("Training and Validation Cost Over Epochs")
+# plt.legend()
+# plt.grid(True)
+# plt.savefig("cost_plot.jpg")
+# plt.show()
 
 #####################################################################################################
 
 # Visualise W matrix
 
 
-Ws = trained_net['W'].transpose().reshape((32, 32, 3, 10), order='F')
-W_im = np.transpose(Ws, (1, 0, 2, 3))
-# Plot all 10 filters side by side
-fig, axes = plt.subplots(1, 10, figsize=(15, 2))
-for i in range(10):
-    w_im = W_im[:, :, :, i]
-    w_im_norm = (w_im - np.min(w_im)) / (np.max(w_im) - np.min(w_im))
-    axes[i].imshow(w_im_norm)
-    axes[i].axis('off')  # hide axes
-
-# Adjust spacing
-plt.tight_layout()
-
-# Save the figure with all 10 filters
-plt.savefig("filters_all_in_one.png", dpi=300)
-plt.show()
+# Ws = trained_net['W'].transpose().reshape((32, 32, 3, 10), order='F')
+# W_im = np.transpose(Ws, (1, 0, 2, 3))
+# # Plot all 10 filters side by side
+# fig, axes = plt.subplots(1, 10, figsize=(15, 2))
+# for i in range(10):
+#     w_im = W_im[:, :, :, i]
+#     w_im_norm = (w_im - np.min(w_im)) / (np.max(w_im) - np.min(w_im))
+#     axes[i].imshow(w_im_norm)
+#     axes[i].axis('off')  # hide axes
+#
+# # Adjust spacing
+# plt.tight_layout()
+#
+# # Save the figure with all 10 filters
+# plt.savefig("filters_all_in_one.png", dpi=300)
+# plt.show()
