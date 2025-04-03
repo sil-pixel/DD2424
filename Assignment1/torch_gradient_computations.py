@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 
 def ComputeGradsWithTorch(X, y, network_params):
 
@@ -11,7 +12,7 @@ def ComputeGradsWithTorch(X, y, network_params):
     
     N = X.shape[1]
     
-    scores = torch.matmul(W, Xt)  + b;
+    scores = torch.matmul(W, Xt)  + b
 
     ## give an informative name to this torch class
     apply_softmax = torch.nn.Softmax(dim=0)

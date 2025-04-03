@@ -1,0 +1,139 @@
+import pickle
+import numpy as np
+
+from torch_gradient_computations import ComputeGradsWithTorch
+
+# Constants
+CIFAR_DIR = 'Datasets/cifar-10-batches-py/'
+K = 10 # number of classes
+
+#####################################################################################################
+
+# Q1
+def LoadBatch(filename):
+    # Load a batch of training data
+    with open(CIFAR_DIR + filename, 'rb') as fo:
+        dict = pickle.load(fo, encoding='bytes')
+    # Extract the image data and cast to float from the dict dictionary
+    X = dict[b'data'].astype(np.float64) / 255.0
+    X = X.transpose()
+
+    # Extract the image labels
+    y = np.array(dict[b'labels'])
+
+    # One-hot encode the labels
+    n = len(y)
+    Y = np.zeros((K, n), dtype=np.float64)
+    # one-hot encoding
+    for i in range(n):
+        Y[y[i], i] = 1.0
+    return [X, Y, y]
+
+#####################################################################################################
+# Load training, validation and testing data
+trainX, trainY, trainy = LoadBatch("data_batch_1")
+valX, valY, valy = LoadBatch("data_batch_2")
+testX, testY, testy = LoadBatch("test_batch")
+
+#####################################################################################################
+
+# Q2
+# Compute mean and std for the training data
+[d,n] = trainX.shape
+mean_X = np.mean(trainX, axis=1).reshape(d, 1)
+std_X = np.std(trainX, axis=1).reshape(d, 1)
+
+# Normalise training, validation and testing data wrt mean_X, std_X
+trainX = (trainX - mean_X)/std_X
+
+valX = (valX - mean_X)/std_X
+
+testX = (testX - mean_X)/std_X
+
+#####################################################################################################
+
+# Q3
+rng = np.random.default_rng()
+# get the BitGenerator used by default_rng
+BitGen = type(rng.bit_generator)
+# use the state from a fresh bit generator
+seed = 42
+rng.bit_generator.state = BitGen(seed).state
+init_net = {}
+init_net['W'] = .01*rng.standard_normal(size = (K, d))
+init_net['b'] = np.zeros((K, 1))
+
+#####################################################################################################
+
+# Q4
+
+def ApplyNetwork(X, network):
+    W = network['W']
+    b = network['b']
+    s = W @ X + b
+    # to avoid inf/inf, for stability remove a constant value from exponentiation
+    exp_s = np.exp(s - np.max(s, axis=0, keepdims=True))
+    P = exp_s/ np.sum(exp_s, axis=0, keepdims=True)
+    return P
+
+P = ApplyNetwork(trainX[:, 0:100], init_net)
+
+#####################################################################################################
+
+# Q5
+
+# Cross-entropy loss
+def ComputeLoss(P, y):
+    n = P.shape[1]
+    log_P = -np.log(P[y, np.arange(n)])  # using the one-hot coding formula for y
+    L = np.mean(log_P)  # average over all samples
+    return L
+
+L = ComputeLoss(P, trainy[0:100])
+
+#####################################################################################################
+
+# Q6
+
+def ComputeAccuracy(P, y):
+    n = P.shape[1]
+    predictions = np.argmax(P, axis=0)
+    correct = np.sum(predictions == y)
+    accuracy = correct/n
+    return accuracy
+
+acc = ComputeAccuracy(P, trainy[0:100])
+
+#####################################################################################################
+
+# Q7
+
+def BackwardPass(X, Y, P, network, lam):
+    nb = X.shape[1]
+    G = -(Y - P)
+    dL_dW = (G @ X.transpose())/ nb
+    ones = np.ones((nb,nb))
+    dL_db = (G @ ones)/nb
+    grads = {}
+    W = network['W']
+    grads['W'] = dL_dW + 2*lam*W
+    grads['b'] = dL_db
+    return grads
+
+grads = BackwardPass(trainX[:, 0:100], trainY[:, 0:100], P, init_net, 0)
+
+#####################################################################################################
+
+# check grads with torch
+
+d_small = 10
+n_small = 3
+lam = 0
+small_net = {}
+small_net['W'] = .01*rng.standard_normal(size = (10, d_small))
+small_net['b'] = np.zeros((10, 1))
+X_small = trainX[0:d_small, 0:n_small]
+Y_small = trainY[:, 0:n_small]
+P = ApplyNetwork(X_small, small_net)
+my_grads = BackwardPass(X_small, Y_small, P, small_net, lam)
+torch_grads = ComputeGradsWithTorch(X_small, trainy[0:n_small], small_net)
