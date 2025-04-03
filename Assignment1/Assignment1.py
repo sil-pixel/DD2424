@@ -1,7 +1,8 @@
+import copy
 import pickle
 import numpy as np
 
-from torch_gradient_computations import ComputeGradsWithTorch
+from torch_gradient_computations import ComputeL2GradsWithTorch
 
 # Constants
 CIFAR_DIR = 'Datasets/cifar-10-batches-py/'
@@ -112,8 +113,7 @@ def BackwardPass(X, Y, P, network, lam):
     nb = X.shape[1]
     G = -(Y - P)
     dL_dW = (G @ X.transpose())/ nb
-    ones = np.ones((nb,nb))
-    dL_db = (G @ ones)/nb
+    dL_db = np.mean(G, axis=1, keepdims=True)
     grads = {}
     W = network['W']
     grads['W'] = dL_dW + 2*lam*W
@@ -136,4 +136,89 @@ X_small = trainX[0:d_small, 0:n_small]
 Y_small = trainY[:, 0:n_small]
 P = ApplyNetwork(X_small, small_net)
 my_grads = BackwardPass(X_small, Y_small, P, small_net, lam)
-torch_grads = ComputeGradsWithTorch(X_small, trainy[0:n_small], small_net)
+torch_grads = ComputeL2GradsWithTorch(X_small, trainy[0:n_small], lam, small_net)
+
+
+def relative_error(grad_analytical, grad_numerical, eps=1e-6):
+    rel_errors = {}
+
+    for key in grad_analytical:
+        ga = grad_analytical[key]
+        gn = grad_numerical[key]
+
+        # Compute element-wise relative error
+        num = np.abs(ga - gn)
+        denom = np.maximum(eps, np.abs(ga) + np.abs(gn))
+        rel_error = num / denom
+
+        # Store maximum relative error for that variable
+        rel_errors[key] = np.max(rel_error)
+
+    return rel_errors
+
+rel_errs = relative_error(torch_grads, my_grads)
+
+for key, val in rel_errs.items():
+    print(f"Max relative error in {key}: {val:.2e}")
+
+#####################################################################################################
+
+# Q8
+
+def MiniBatchGD(X, Y, y, GDparams, init_net, lam, rng):
+    loss_history = []
+    trained_net = copy.deepcopy(init_net)
+    n_batch = GDparams['n_batch']
+    eta = GDparams['eta']
+    n_epochs = GDparams['n_epochs']
+    n = X.shape[1]
+    for epoch in range(n_epochs):
+        # Shuffle indices for current epoch
+        perm = rng.permutation(n)
+        X = X[:, perm]
+        Y = Y[:, perm]
+        y = y[perm]
+        for j in range(n // n_batch):
+            j_start = j * n_batch
+            j_end = (j + 1) * n_batch
+            inds = range(j_start, j_end)
+            Xbatch = X[:, inds]
+            Ybatch = Y[:, inds]
+            # Forward Pass
+            Pbatch = ApplyNetwork(Xbatch, trained_net)
+            # Backward Pass
+            grads = BackwardPass(Xbatch, Ybatch, Pbatch, trained_net, lam)
+            # Gradient descent update
+            trained_net['W'] -= eta*grads['W']
+            trained_net['b'] -= eta*grads['b']
+
+        # Compute training loss and accuracy on full dataset (once per epoch)
+        P_full = ApplyNetwork(X, trained_net)
+        loss = ComputeLoss(P_full, y)
+        loss_history.append(loss)
+        acc = ComputeAccuracy(P_full, y)
+        print(f"Epoch {epoch + 1}/{n_epochs} - Loss: {loss:.4f}, Accuracy: {acc * 100:.2f}%")
+    return [trained_net, loss_history]
+
+GDparams = {
+    'n_batch': 100,
+    'eta': 0.001,
+    'n_epochs': 40
+}
+lam = 0
+seed = 42
+rng = np.random.default_rng(seed)
+[trained_net, train_loss_history] = MiniBatchGD(trainX, trainY, trainy, GDparams, init_net, lam, rng)
+
+
+import matplotlib.pyplot as plt
+
+epochs = range(1, len(train_loss_history) + 1)
+
+plt.plot(epochs, train_loss_history, label="Training Loss", color='green')
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Training Loss Over Epochs")
+plt.legend()
+plt.grid(True)
+plt.show()
