@@ -222,7 +222,7 @@ GDparams = {
     'eta': 0.001,
     'n_epochs': 40
 }
-lam = 1
+lam = 0.1
 seed = 42
 rng = np.random.default_rng(seed)
 [trained_net, train_loss_history, train_cost_history] = MiniBatchGD(trainX, trainY, trainy, GDparams, init_net, lam, rng)
@@ -236,7 +236,7 @@ plt.plot(epochs, train_loss_history, label="Training Loss", color='green')
 plt.plot(epochs, val_loss_history, label="Validation Loss", color='blue')
 plt.xlabel("Epoch")
 plt.ylabel("Loss")
-plt.title("Training Loss Over Epochs")
+plt.title("Training and Validation Loss Over Epochs")
 plt.legend()
 plt.grid(True)
 plt.savefig("loss_plot.jpg")
