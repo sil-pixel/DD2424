@@ -36,22 +36,23 @@ def LoadBatch(filename):
 trainX, trainY, trainy = LoadBatch("data_batch_1")
 valX, valY, valy = LoadBatch("data_batch_2")
 testX, testY, testy = LoadBatch("test_batch")
+[d,n] = trainX.shape
 
 #####################################################################################################
 
 # Q2
-# Compute mean and std for the training data
-[d,n] = trainX.shape
-mean_X = np.mean(trainX, axis=1).reshape(d, 1)
-std_X = np.std(trainX, axis=1).reshape(d, 1)
+def NormalizeData(trainX, valX, testX):
+    d = trainX.shape[0]
+    mean_X = np.mean(trainX, axis=1).reshape(d, 1)
+    std_X = np.std(trainX, axis=1).reshape(d, 1)
 
-# Normalise training, validation and testing data wrt mean_X, std_X
-trainX = (trainX - mean_X)/std_X
+    trainX_norm = (trainX - mean_X) / std_X
+    valX_norm = (valX - mean_X) / std_X
+    testX_norm = (testX - mean_X) / std_X
 
-valX = (valX - mean_X)/std_X
+    return trainX_norm, valX_norm, testX_norm
 
-testX = (testX - mean_X)/std_X
-
+trainX, valX, testX = NormalizeData(trainX, valX, testX)
 #####################################################################################################
 
 # Q3
@@ -69,16 +70,20 @@ init_net['b'] = np.zeros((K, 1))
 
 # Q4
 
-def ApplyNetwork(X, network):
-    W = network['W']
-    b = network['b']
-    s = W @ X + b
+def softmax(s):
     # to avoid inf/inf, for stability remove a constant value from exponentiation
     exp_s = np.exp(s - np.max(s, axis=0, keepdims=True))
     P = exp_s/ np.sum(exp_s, axis=0, keepdims=True)
     return P
 
-P = ApplyNetwork(trainX[:, 0:100], init_net)
+def ApplyNetwork(X, network):
+    W = network['W']
+    b = network['b']
+    s = W @ X + b
+    P = softmax(s)
+    return P
+
+#P = ApplyNetwork(trainX[:, 0:100], init_net)
 
 #####################################################################################################
 
@@ -91,7 +96,7 @@ def ComputeLoss(P, y):
     L = np.mean(log_P)  # average over all samples
     return L
 
-L = ComputeLoss(P, trainy[0:100])
+#L = ComputeLoss(P, trainy[0:100])
 
 #####################################################################################################
 
@@ -104,7 +109,7 @@ def ComputeAccuracy(P, y):
     accuracy = correct/n
     return accuracy
 
-acc = ComputeAccuracy(P, trainy[0:100])
+#acc = ComputeAccuracy(P, trainy[0:100])
 
 #####################################################################################################
 
@@ -127,17 +132,19 @@ def BackwardPass(X, Y, P, network, lam):
 
 # check grads with torch
 
-d_small = 10
-n_small = 3
-lam = 0
-small_net = {}
-small_net['W'] = .01*rng.standard_normal(size = (10, d_small))
-small_net['b'] = np.zeros((10, 1))
-X_small = trainX[0:d_small, 0:n_small]
-Y_small = trainY[:, 0:n_small]
-P = ApplyNetwork(X_small, small_net)
-my_grads = BackwardPass(X_small, Y_small, P, small_net, lam)
-torch_grads = ComputeL2GradsWithTorch(X_small, trainy[0:n_small], lam, small_net)
+def CheckGradsWithTorch(trainX, trainY, trainy):
+    d_small = 10
+    n_small = 3
+    lam = 0
+    small_net = {}
+    small_net['W'] = .01*rng.standard_normal(size = (10, d_small))
+    small_net['b'] = np.zeros((10, 1))
+    X_small = trainX[0:d_small, 0:n_small]
+    Y_small = trainY[:, 0:n_small]
+    P = ApplyNetwork(X_small, small_net)
+    my_grads = BackwardPass(X_small, Y_small, P, small_net, lam)
+    torch_grads = ComputeL2GradsWithTorch(X_small, trainy[0:n_small], lam, small_net)
+    return [my_grads, torch_grads]
 
 
 def relative_error(grad_analytical, grad_numerical, eps=1e-6):
@@ -157,19 +164,16 @@ def relative_error(grad_analytical, grad_numerical, eps=1e-6):
 
     return rel_errors
 
-rel_errs = relative_error(torch_grads, my_grads)
+#[my_grads, torch_grads] = CheckGradsWithTorch(trainX, trainY, trainy)
+#rel_errs = relative_error(torch_grads, my_grads)
 
-for key, val in rel_errs.items():
-    print(f"Max relative error in {key}: {val:.2e}")
+#for key, val in rel_errs.items():
+   # print(f"Max relative error in {key}: {val:.2e}")
 
 #####################################################################################################
 
 # Compute cost function
-def ComputeCost(P, y, W, lam):
-    n = P.shape[1]
-    # Cross-entropy loss
-    log_probs = -np.log(P[y, np.arange(n)] + 1e-15)
-    loss = np.mean(log_probs)
+def ComputeCost(loss, W, lam):
     # L2 regularization
     reg_term = lam * np.sum(W**2)
     cost = loss + reg_term
@@ -179,7 +183,7 @@ def ComputeCost(P, y, W, lam):
 
 # Q8
 
-def MiniBatchGD(X, Y, y, GDparams, init_net, lam, rng):
+def MiniBatchGD(X, Y, y, GDparams, init_net, lam, rng, setting):
     loss_history = []
     cost_history = []
     trained_net = copy.deepcopy(init_net)
@@ -211,66 +215,138 @@ def MiniBatchGD(X, Y, y, GDparams, init_net, lam, rng):
         P_full = ApplyNetwork(X, trained_net)
         loss = ComputeLoss(P_full, y)
         loss_history.append(loss)
-        cost = ComputeCost(P_full, y, trained_net['W'], lam)
+        cost = ComputeCost(loss, trained_net['W'], lam)
         cost_history.append(cost)
-        acc = ComputeAccuracy(P_full, y)
-        print(f"Epoch {epoch + 1}/{n_epochs} - Loss: {loss:.4f}, Accuracy: {acc * 100:.2f}%")
+        #acc = ComputeAccuracy(P_full, y)
+        #print(f"Epoch {epoch + 1}/{n_epochs} - Loss: {loss:.4f}, Accuracy: {acc * 100:.2f}%")
+    acc = ComputeAccuracy(ApplyNetwork(X, trained_net), y)
+    print(f"Accuracy for {setting} : {acc * 100:.2f}%")
     return [trained_net, loss_history, cost_history]
+
+
+# Train the network
+def TrainNet(trainX, trainY, trainy, valX, valY, valy, testX, testY, testy,
+             GDparams, init_net, lam, rng):
+    # Train the network
+    [trained_net, train_loss_history, train_cost_history] = MiniBatchGD(trainX, trainY, trainy,
+                                                                        GDparams, init_net,
+                                                                        lam, rng, "training")
+    # Validate the network
+    [val_net, val_loss_history, val_cost_history] = MiniBatchGD(valX, valY, valy,
+                                                                GDparams, trained_net,
+                                                                lam, rng, "validation")
+    # Test the network
+    [tested_net, test_loss_history, test_cost_history] = MiniBatchGD(testX, testY, testy,
+                                                                    GDparams, trained_net,
+                                                                    lam, rng, "testing")
+    return [trained_net, train_loss_history, train_cost_history,
+           val_net, val_loss_history, val_cost_history,
+           tested_net, test_loss_history, test_cost_history]
+
 
 GDparams = {
     'n_batch': 100,
     'eta': 0.001,
     'n_epochs': 40
 }
-lam = 0.1
+lam = 0.001
 seed = 42
 rng = np.random.default_rng(seed)
-[trained_net, train_loss_history, train_cost_history] = MiniBatchGD(trainX, trainY, trainy, GDparams, init_net, lam, rng)
-[val_net, val_loss_history, val_cost_history] = MiniBatchGD(valX, valY, valy, GDparams, init_net, lam, rng)
-[tested_net, test_loss_history, test_cost_history] = MiniBatchGD(testX, testY, testy, GDparams, init_net, lam, rng)
+[trained_net, train_loss_history, train_cost_history, val_net, val_loss_history, val_cost_history,
+    tested_net, test_loss_history, test_cost_history] = (
+    TrainNet(trainX, trainY, trainy,valX, valY, valy, testX, testY, testy,
+             GDparams, init_net, lam, rng))
 
 # Plot the loss curves
 
-epochs = range(1, len(train_loss_history) + 1)
-plt.plot(epochs, train_loss_history, label="Training Loss", color='green')
-plt.plot(epochs, val_loss_history, label="Validation Loss", color='blue')
-plt.xlabel("Epoch")
-plt.ylabel("Loss")
-plt.title("Training and Validation Loss Over Epochs")
-plt.legend()
-plt.grid(True)
-plt.savefig("loss_plot.jpg")
-plt.show()
+def PlotTrainingCurves(train_loss_history, val_loss_history, train_cost_history, val_cost_history,
+                       loss_filename, cost_filename):
 
-plt.figure(figsize=(8, 5))
-plt.plot(epochs, train_cost_history, label="Training Cost", color='green')
-plt.plot(epochs, val_cost_history, label="Validation Cost", color='blue')
-plt.xlabel("Epoch")
-plt.ylabel("Cost")
-plt.title("Training and Validation Cost Over Epochs")
-plt.legend()
-plt.grid(True)
-plt.savefig("cost_plot.jpg")
-plt.show()
+    epochs = range(1, len(train_loss_history) + 1)
+
+    # Plot Loss
+    plt.figure(figsize=(8, 5))
+    plt.plot(epochs, train_loss_history, label="Training Loss", color='green')
+    plt.plot(epochs, val_loss_history, label="Validation Loss", color='blue')
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.title("Training and Validation Loss Over Epochs")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(loss_filename)
+    plt.show()
+
+    # Plot Cost
+    plt.figure(figsize=(8, 5))
+    plt.plot(epochs, train_cost_history, label="Training Cost", color='green')
+    plt.plot(epochs, val_cost_history, label="Validation Cost", color='blue')
+    plt.xlabel("Epoch")
+    plt.ylabel("Cost")
+    plt.title("Training and Validation Cost Over Epochs")
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(cost_filename)
+    plt.show()
+
+
+# Plot the training and validation loss and cost
+PlotTrainingCurves(train_loss_history, val_loss_history, train_cost_history,
+                  val_cost_history,"loss_plot_2_3.jpg", "cost_plot_2_3.jpg")
+
 
 #####################################################################################################
 
 # Visualise W matrix
 
+def VisualizeFilters(W, filename):
+    """
+    Visualize the weight matrix W as 10 class template images for CIFAR-10.
 
-Ws = trained_net['W'].transpose().reshape((32, 32, 3, 10), order='F')
-W_im = np.transpose(Ws, (1, 0, 2, 3))
-# Plot all 10 filters side by side
-fig, axes = plt.subplots(1, 10, figsize=(15, 2))
-for i in range(10):
-    w_im = W_im[:, :, :, i]
-    w_im_norm = (w_im - np.min(w_im)) / (np.max(w_im) - np.min(w_im))
-    axes[i].imshow(w_im_norm)
-    axes[i].axis('off')  # hide axes
+    Parameters:
+        W (np.ndarray): Weight matrix of shape (K, 3072) where K=10.
+        filename (str): Output file name to save the filter visualization.
+    """
+    Ws = W.transpose().reshape((32, 32, 3, 10), order='F')
+    W_im = np.transpose(Ws, (1, 0, 2, 3))  # shape: (32, 32, 3, 10)
 
-# Adjust spacing
-plt.tight_layout()
+    fig, axes = plt.subplots(1, 10, figsize=(15, 2))
+    for i in range(10):
+        w_im = W_im[:, :, :, i]
+        w_im_norm = (w_im - np.min(w_im)) / (np.max(w_im) - np.min(w_im))  # normalize for display
+        axes[i].imshow(w_im_norm)
+        axes[i].axis('off')
 
-# Save the figure with all 10 filters
-plt.savefig("filters_all_in_one.png", dpi=300)
-plt.show()
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300)
+    plt.show()
+
+
+VisualizeFilters(trained_net['W'], "filters_all_in_one.png")
+
+
+def PlotHistogram(P, testy, title, filename):
+    # Get predicted class for each example
+    preds = np.argmax(P, axis=0)
+    correct_mask = (preds == testy)
+    incorrect_mask = ~correct_mask
+
+    # Extract the predicted probability for the true class
+    true_class_probs = P[testy, np.arange(len(testy))]
+
+    correct_probs = true_class_probs[correct_mask]
+    incorrect_probs = true_class_probs[incorrect_mask]
+
+    # Plot histograms
+    plt.figure(figsize=(10, 5))
+    plt.hist(correct_probs, bins=20, alpha=0.7, label="Correctly Classified", color='green')
+    plt.hist(incorrect_probs, bins=20, alpha=0.7, label="Incorrectly Classified", color='red')
+    plt.xlabel("Predicted Probability of True Class")
+    plt.ylabel("Number of Examples")
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(filename, dpi=300)
+    plt.show()
+
+PlotHistogram(ApplyNetwork(testX, tested_net), testy, "Histogram (Softmax + CE)", "histogram_ce.png")
