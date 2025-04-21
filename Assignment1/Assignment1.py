@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 import matplotlib.pyplot as plt
 
-from torch_gradient_computations import ComputeL2GradsWithTorch
+#from torch_gradient_computations import ComputeL2GradsWithTorch
 
 # Constants
 CIFAR_DIR = 'Datasets/cifar-10-batches-py/'
@@ -132,19 +132,19 @@ def BackwardPass(X, Y, P, network, lam):
 
 # check grads with torch
 
-def CheckGradsWithTorch(trainX, trainY, trainy):
-    d_small = 10
-    n_small = 3
-    lam = 0
-    small_net = {}
-    small_net['W'] = .01*rng.standard_normal(size = (10, d_small))
-    small_net['b'] = np.zeros((10, 1))
-    X_small = trainX[0:d_small, 0:n_small]
-    Y_small = trainY[:, 0:n_small]
-    P = ApplyNetwork(X_small, small_net)
-    my_grads = BackwardPass(X_small, Y_small, P, small_net, lam)
-    torch_grads = ComputeL2GradsWithTorch(X_small, trainy[0:n_small], lam, small_net)
-    return [my_grads, torch_grads]
+# def CheckGradsWithTorch(trainX, trainY, trainy):
+#     d_small = 10
+#     n_small = 3
+#     lam = 0
+#     small_net = {}
+#     small_net['W'] = .01*rng.standard_normal(size = (10, d_small))
+#     small_net['b'] = np.zeros((10, 1))
+#     X_small = trainX[0:d_small, 0:n_small]
+#     Y_small = trainY[:, 0:n_small]
+#     P = ApplyNetwork(X_small, small_net)
+#     my_grads = BackwardPass(X_small, Y_small, P, small_net, lam)
+#     torch_grads = ComputeL2GradsWithTorch(X_small, trainy[0:n_small], lam, small_net)
+#     return [my_grads, torch_grads]
 
 
 def relative_error(grad_analytical, grad_numerical, eps=1e-6):
@@ -252,10 +252,10 @@ GDparams = {
 lam = 0.001
 seed = 42
 rng = np.random.default_rng(seed)
-[trained_net, train_loss_history, train_cost_history, val_net, val_loss_history, val_cost_history,
-    tested_net, test_loss_history, test_cost_history] = (
-    TrainNet(trainX, trainY, trainy,valX, valY, valy, testX, testY, testy,
-             GDparams, init_net, lam, rng))
+# [trained_net, train_loss_history, train_cost_history, val_net, val_loss_history, val_cost_history,
+#     tested_net, test_loss_history, test_cost_history] = (
+#     TrainNet(trainX, trainY, trainy,valX, valY, valy, testX, testY, testy,
+#              GDparams, init_net, lam, rng))
 
 # Plot the loss curves
 
@@ -290,8 +290,8 @@ def PlotTrainingCurves(train_loss_history, val_loss_history, train_cost_history,
 
 
 # Plot the training and validation loss and cost
-PlotTrainingCurves(train_loss_history, val_loss_history, train_cost_history,
-                  val_cost_history,"loss_plot_2_3.jpg", "cost_plot_2_3.jpg")
+# PlotTrainingCurves(train_loss_history, val_loss_history, train_cost_history,
+#                   val_cost_history,"loss_plot_2_3.jpg", "cost_plot_2_3.jpg")
 
 
 #####################################################################################################
@@ -321,7 +321,7 @@ def VisualizeFilters(W, filename):
     plt.show()
 
 
-VisualizeFilters(trained_net['W'], "filters_all_in_one.png")
+# VisualizeFilters(trained_net['W'], "filters_all_in_one.png")
 
 
 def PlotHistogram(P, testy, title, filename):
@@ -349,4 +349,4 @@ def PlotHistogram(P, testy, title, filename):
     plt.savefig(filename, dpi=300)
     plt.show()
 
-PlotHistogram(ApplyNetwork(testX, tested_net), testy, "Histogram (Softmax + CE)", "histogram_ce.png")
+# PlotHistogram(ApplyNetwork(testX, tested_net), testy, "Histogram (Softmax + CE)", "histogram_ce.png")
