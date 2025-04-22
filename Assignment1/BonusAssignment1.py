@@ -62,12 +62,9 @@ init_net = {}
 [d,n] = trainX.shape
 init_net['W'] = .01*rng.standard_normal(size = (K, d))
 init_net['b'] = np.zeros((K, 1))
-# lam = 0
 
-[trained_net, train_loss_history, train_cost_history, val_net, val_loss_history, val_cost_history,
-    tested_net, test_loss_history, test_cost_history] = (
-        TrainNet(trainX, trainY, trainy,valX, valY, valy, testX, testY, testy,
-             GDparams, init_net, lam, rng))
+[trained_net, train_loss_history, train_cost_history, val_loss_history, val_cost_history] = (
+        TrainNet(trainX, trainY, trainy, valX, valy, init_net, 0, rng))
 
 PlotTrainingCurves(train_loss_history, val_loss_history, train_cost_history,
                   val_cost_history,"loss_plot_2_1.jpg", "cost_plot_2_1.jpg")

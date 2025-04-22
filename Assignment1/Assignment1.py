@@ -164,11 +164,11 @@ def relative_error(grad_analytical, grad_numerical, eps=1e-6):
 
     return rel_errors
 
-#[my_grads, torch_grads] = CheckGradsWithTorch(trainX, trainY, trainy)
-#rel_errs = relative_error(torch_grads, my_grads)
+# [my_grads, torch_grads] = CheckGradsWithTorch(trainX, trainY, trainy)
+# rel_errs = relative_error(torch_grads, my_grads)
 
-#for key, val in rel_errs.items():
-   # print(f"Max relative error in {key}: {val:.2e}")
+# for key, val in rel_errs.items():
+#    print(f"Max relative error in {key}: {val:.2e}")
 
 #####################################################################################################
 
@@ -183,9 +183,12 @@ def ComputeCost(loss, W, lam):
 
 # Q8
 
-def MiniBatchGD(X, Y, y, GDparams, init_net, lam, rng, setting):
+def MiniBatchGD(X, Y, y, GDparams, init_net, lam, rng, valX=None, valy=None, testX=None, testy=None):
     loss_history = []
     cost_history = []
+    val_loss_history = []
+    val_cost_history = []
+    # Initialize the network
     trained_net = copy.deepcopy(init_net)
     n_batch = GDparams['n_batch']
     eta = GDparams['eta']
@@ -217,31 +220,32 @@ def MiniBatchGD(X, Y, y, GDparams, init_net, lam, rng, setting):
         loss_history.append(loss)
         cost = ComputeCost(loss, trained_net['W'], lam)
         cost_history.append(cost)
-        #acc = ComputeAccuracy(P_full, y)
-        #print(f"Epoch {epoch + 1}/{n_epochs} - Loss: {loss:.4f}, Accuracy: {acc * 100:.2f}%")
+        acc = ComputeAccuracy(P_full, y)
+        print(f"Epoch {epoch + 1}/{n_epochs} - Loss: {loss:.4f}, Accuracy: {acc * 100:.2f}%")
+        # Compute validation loss and accuracy
+        if valX is not None and valy is not None:
+            P_val = ApplyNetwork(valX, trained_net)
+            val_loss = ComputeLoss(P_val, valy)
+            val_cost = ComputeCost(val_loss, trained_net['W'], lam)
+            val_loss_history.append(val_loss)
+            val_cost_history.append(val_cost)
+            val_acc = ComputeAccuracy(P_val, valy)
+            print(f"Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_acc * 100:.2f}%")
     acc = ComputeAccuracy(ApplyNetwork(X, trained_net), y)
-    print(f"Accuracy for {setting} : {acc * 100:.2f}%")
-    return [trained_net, loss_history, cost_history]
+    print(f"Accuracy for training : {acc * 100:.2f}%")
+    val_acc = ComputeAccuracy(ApplyNetwork(valX, trained_net), valy)
+    print(f"Accuracy for validation : {val_acc * 100:.2f}%")
+    # Compute test loss and accuracy
+    if testX is not None and testy is not None:
+        test_acc = ComputeAccuracy(ApplyNetwork(testX, trained_net), testy)
+        print(f"Accuracy for test : {test_acc * 100:.2f}%")
+    return [trained_net, loss_history, cost_history, val_loss_history, val_cost_history]
 
 
 # Train the network
-def TrainNet(trainX, trainY, trainy, valX, valY, valy, testX, testY, testy,
-             GDparams, init_net, lam, rng):
+def TrainNet(trainX, trainY, trainy, valX, valy, testX, testy, init_net, GDparams, lam, rng):
     # Train the network
-    [trained_net, train_loss_history, train_cost_history] = MiniBatchGD(trainX, trainY, trainy,
-                                                                        GDparams, init_net,
-                                                                        lam, rng, "training")
-    # Validate the network
-    [val_net, val_loss_history, val_cost_history] = MiniBatchGD(valX, valY, valy,
-                                                                GDparams, trained_net,
-                                                                lam, rng, "validation")
-    # Test the network
-    [tested_net, test_loss_history, test_cost_history] = MiniBatchGD(testX, testY, testy,
-                                                                    GDparams, trained_net,
-                                                                    lam, rng, "testing")
-    return [trained_net, train_loss_history, train_cost_history,
-           val_net, val_loss_history, val_cost_history,
-           tested_net, test_loss_history, test_cost_history]
+    return MiniBatchGD(trainX, trainY, trainy, GDparams, init_net, lam, rng, valX=valX, valy=valy, testX=testX, testy=testy)
 
 
 GDparams = {
@@ -249,13 +253,9 @@ GDparams = {
     'eta': 0.001,
     'n_epochs': 40
 }
-lam = 0.001
-seed = 42
-rng = np.random.default_rng(seed)
-# [trained_net, train_loss_history, train_cost_history, val_net, val_loss_history, val_cost_history,
-#     tested_net, test_loss_history, test_cost_history] = (
-#     TrainNet(trainX, trainY, trainy,valX, valY, valy, testX, testY, testy,
-#              GDparams, init_net, lam, rng))
+# [trained_net, train_loss_history, train_cost_history, val_loss_history, val_cost_history] = (
+#     TrainNet(trainX, trainY, trainy, valX, valy, testX, testy, init_net, GDparams, 0.001, rng))
+
 
 # Plot the loss curves
 
@@ -321,7 +321,47 @@ def VisualizeFilters(W, filename):
     plt.show()
 
 
-# VisualizeFilters(trained_net['W'], "filters_all_in_one.png")
+#VisualizeFilters(trained_net['W'], "filters_all_in_one.png")
+
+def Assignment1():
+    # case 1
+    GDparams1 = {
+        'n_batch': 100,
+        'eta': 0.1,
+        'n_epochs': 40
+    }
+    [trained_net1, train_loss_history1, train_cost_history1, val_loss_history1, val_cost_history1] = (
+        TrainNet(trainX, trainY, trainy, valX, valy, testX, testy, init_net, GDparams1, 0, rng))
+    PlotTrainingCurves(train_loss_history1, val_loss_history1, train_cost_history1,
+                      val_cost_history1, "loss_plot1.jpg", "cost_plot1.jpg")
+    VisualizeFilters(trained_net1['W'], "filters_all_in_one1.png")
+    # case 2
+    GDparams2 = {
+        'n_batch': 100,
+        'eta': 0.001,
+        'n_epochs': 40
+    }
+    [trained_net2, train_loss_history2, train_cost_history2, val_loss_history2, val_cost_history2] = (
+        TrainNet(trainX, trainY, trainy, valX, valy, testX, testy, init_net, GDparams2, 0, rng))
+    PlotTrainingCurves(train_loss_history2, val_loss_history2, train_cost_history2,
+                      val_cost_history2, "loss_plot2.jpg", "cost_plot2.jpg")
+    VisualizeFilters(trained_net2['W'], "filters_all_in_one2.png")
+    # case 3
+    [trained_net3, train_loss_history3, train_cost_history3, val_loss_history3, val_cost_history3] = (
+        TrainNet(trainX, trainY, trainy, valX, valy, testX, testy, init_net, GDparams2, 0.1, rng))
+    PlotTrainingCurves(train_loss_history3, val_loss_history3, train_cost_history3,
+                      val_cost_history3, "loss_plot3.jpg", "cost_plot3.jpg")
+    VisualizeFilters(trained_net3['W'], "filters_all_in_one3.png")
+    # case 4
+    [trained_net4, train_loss_history4, train_cost_history4, val_loss_history4, val_cost_history4] = (
+        TrainNet(trainX, trainY, trainy, valX, valy, testX, testy, init_net, GDparams2, 1, rng))
+    PlotTrainingCurves(train_loss_history4, val_loss_history4, train_cost_history4,
+                      val_cost_history4, "loss_plot4.jpg", "cost_plot4.jpg")
+    VisualizeFilters(trained_net4['W'], "filters_all_in_one4.png") 
+
+
+#Assignment1()
+
 
 
 def PlotHistogram(P, testy, title, filename):
@@ -349,4 +389,4 @@ def PlotHistogram(P, testy, title, filename):
     plt.savefig(filename, dpi=300)
     plt.show()
 
-# PlotHistogram(ApplyNetwork(testX, tested_net), testy, "Histogram (Softmax + CE)", "histogram_ce.png")
+#PlotHistogram(ApplyNetwork(testX, trained_net), testy, "Histogram (Softmax + CE)", "histogram_ce.png")
