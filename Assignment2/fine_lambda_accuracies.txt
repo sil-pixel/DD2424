@@ -1,0 +1,10 @@
+lambda = 0.00014270857110812088, training accuracy = 72.26%, validation accuracy = 53.52%
+lambda = 0.00037294936421987206, training accuracy = 71.87%, validation accuracy = 54.34%
+lambda = 0.0004314324620065714, training accuracy = 71.88%, validation accuracy = 54.02%
+lambda = 0.0005807904703734551, training accuracy = 71.17%, validation accuracy = 53.50%
+lambda = 0.0022477040596100145, training accuracy = 67.24%, validation accuracy = 54.76%
+lambda = 0.004511240968509275, training accuracy = 62.94%, validation accuracy = 54.22%
+lambda = 0.004726183203219606, training accuracy = 62.84%, validation accuracy = 54.34%
+lambda = 0.00690415946653923, training accuracy = 60.29%, validation accuracy = 53.62%
+lambda = 0.008945776019911344, training accuracy = 58.19%, validation accuracy = 52.82%
+lambda = 0.009748002016127588, training accuracy = 57.69%, validation accuracy = 52.52%

@@ -41,14 +41,17 @@ testX, testY, testy = LoadBatch("test_batch")
 #####################################################################################################
 
 # Q2
-def NormalizeData(trainX, valX, testX):
+def NormalizeData(trainX, valX, testX=None):
     d = trainX.shape[0]
     mean_X = np.mean(trainX, axis=1).reshape(d, 1)
     std_X = np.std(trainX, axis=1).reshape(d, 1)
 
     trainX_norm = (trainX - mean_X) / std_X
     valX_norm = (valX - mean_X) / std_X
-    testX_norm = (testX - mean_X) / std_X
+    if testX is not None:
+        testX_norm = (testX - mean_X) / std_X
+    else:
+        testX_norm = None
 
     return trainX_norm, valX_norm, testX_norm
 

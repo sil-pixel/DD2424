@@ -95,6 +95,7 @@ testX, testY, testy = LoadBatch("test_batch")
 trainX, valX, testX = NormalizeData(trainX, valX, testX)
 
 [d,n] = trainX.shape
+#print(f"trainX shape: {trainX.shape}")
 
 
 def relative_error2(my_grads_layer, torch_grads_layer, eps=1e-6):
@@ -113,7 +114,7 @@ def relative_error2(my_grads_layer, torch_grads_layer, eps=1e-6):
             raise TypeError(f"Expected numpy arrays for gradients, got {type(ga)} and {type(gn)} at index {i}")
     return rel_errors
 
-#my_grads, torch_grads = CheckGradsWithTorch(trainX, trainY, trainy)
+
 
 
 # Check the relative errors
@@ -129,13 +130,16 @@ def print_relative_errors(my_grads, torch_grads):
     for key in rel_errs_b:
         print(f"Layer {key}: max relative error = {np.max(rel_errs_b[key]):.2e}")
 
-#print_relative_errors(my_grads, torch_grads)
+
+def exercise1():
+    my_grads, torch_grads = CheckGradsWithTorch(trainX, trainY, trainy)
+    print_relative_errors(my_grads, torch_grads)
 
 def Compute2LayerCost(loss, network, lam):  
     # Compute the cost for a 2-layer network
     W1 = network['W'][0]
     W2 = network['W'][1]
-    cost = ComputeCost(loss, W2, lam) + ComputeCost(loss, W1, lam)
+    cost = ComputeCost(loss, W2, lam) + ComputeCost(loss, W1, lam) - loss
     return cost
 
 def MiniBatch2LayerGD(X, Y, y, GDparams, init_net, lam, rng, valX=None, valy = None, testX=None, testy = None):
@@ -202,16 +206,6 @@ def Train2LayerNet(trainX, trainY, trainy, valX, valy, testX, testy, GDparams, i
     return MiniBatch2LayerGD(trainX, trainY, trainy, GDparams, init_net,lam, rng, valX=valX, valy=valy, testX=testX, testy=testy)
 
 
-# GDparams = {
-#     'n_batch': 100,
-#     'eta': 0.001,
-#     'n_epochs': 200
-# }
-# lam = 0.001
-# init_net = networkInitialize(10, d, 100)
-# [trained_net, train_loss_history, train_cost_history, val_loss_history, val_cost_history] = (
-#     Train2LayerNet(trainX, trainY, trainy, valX, valy, testX, testy, GDparams, init_net, lam, rng))
-
 
 def CyclicEta(n_s, eta_max, eta_min, t):
     l = int(t // (2 * n_s))  # determine current cycle
@@ -225,7 +219,7 @@ def CyclicEta(n_s, eta_max, eta_min, t):
     return eta_t      
 
 # train the network with cyclic learning rate
-def MiniBatch2LayerGDCyclic(X, Y, y, GDparams, init_net, lam, rng, valX=None, valy = None, testX=None, testy = None):
+def MiniBatch2LayerGDCyclic(X, Y, y, GDparams, init_net, lam, rng, valX=None, valy=None, testX=None, testy = None):
     loss_history = []
     cost_history = []
     acc_history = []
@@ -243,6 +237,10 @@ def MiniBatch2LayerGDCyclic(X, Y, y, GDparams, init_net, lam, rng, valX=None, va
     n_epochs = GDparams['n_epochs']
     n_s = GDparams['n_s']
     n = X.shape[1]
+    max_steps = n_epochs * (n // n_batch)
+    n_cycles = max_steps // (2 * n_s)
+    # log 10 times per cycle
+    log_check = np.int64(max_steps / (10 * n_cycles))
     for epoch in range(n_epochs):
         # Shuffle indices for current epoch
         perm = rng.permutation(n)
@@ -274,7 +272,7 @@ def MiniBatch2LayerGDCyclic(X, Y, y, GDparams, init_net, lam, rng, valX=None, va
             eta_history2.append(eta_t1)
 
             # Store the current step and learning rate
-            if step % 100 == 0 or step == 999:
+            if step % log_check == 0 or step == max_steps - 1:
                 steps_history.append(step)
                 loss = ComputeLoss(Pbatch, ybatch)
                 loss_history.append(loss)
@@ -296,37 +294,24 @@ def MiniBatch2LayerGDCyclic(X, Y, y, GDparams, init_net, lam, rng, valX=None, va
     # Compute training loss and accuracy on full dataset 
     acc = ComputeAccuracy(Apply2LayerNetwork(X, trained_net), y)
     print(f"Accuracy for training : {acc * 100:.2f}% with steps {step}")
-    val_acc = ComputeAccuracy(Apply2LayerNetwork(valX, trained_net), valy)
-    print(f"Accuracy for validation : {val_acc * 100:.2f}% with steps {step}")
-    test_acc = ComputeAccuracy(Apply2LayerNetwork(testX, trained_net), testy)
-    print(f"Accuracy for testing : {test_acc * 100:.2f}% with steps {step}")
-    return [trained_net, loss_history, cost_history, acc_history, val_loss_history, val_cost_history, val_acc_history, steps_history, eta_history1, eta_history2]
+    if valX is not None and valy is not None:
+        val_acc = ComputeAccuracy(Apply2LayerNetwork(valX, trained_net), valy)
+        print(f"Accuracy for validation : {val_acc * 100:.2f}% with steps {step}")
+    if testX is not None and testy is not None:
+        test_acc = ComputeAccuracy(Apply2LayerNetwork(testX, trained_net), testy)
+        print(f"Accuracy for testing : {test_acc * 100:.2f}% with steps {step}")
+    return [trained_net, loss_history, cost_history, acc_history, val_loss_history, 
+            val_cost_history, val_acc_history, steps_history, eta_history1, eta_history2]
 
 # Train the network with cyclic learning rate
-def Train2LayerNetCyclic(trainX, trainY, trainy, valX, valy, testX, testy,
-             GDparams, init_net, lam, rng):
+def Train2LayerNetCyclic(trainX, trainY, trainy, GDparams, init_net, lam, rng, 
+                         valX=None, valy=None, testX=None, testy=None):
     # Train the network
     return MiniBatch2LayerGDCyclic(trainX, trainY, trainy, GDparams, init_net, lam, rng, 
                                    valX=valX, valy=valy, testX=testX, testy=testy)
 
 
-GDparams = {
-    'n_batch': 100,
-    'eta_max': 1e-1,
-    'eta_min': 1e-5,
-    'n_epochs': 10,
-    'n_s': 500   
-}
-lam = 0.01
-init_net = networkInitialize(10, d, 100)    
-[trained_net, train_loss_history, train_cost_history, train_acc_history, 
- val_loss_history, val_cost_history, val_acc_history, train_steps_history, eta_history1, eta_history2] = (
-    Train2LayerNetCyclic(trainX, trainY, trainy, valX, valy, testX, testy,
-             GDparams, init_net, lam, rng2))
-
-
-
-def plot_training_curves(log_steps, log_loss, log_cost, log_acc,
+def plot_training_curves(log_steps, log_loss, log_cost, log_acc, filename,
                          val_loss=None, val_cost=None, val_acc=None):
     plt.figure(figsize=(18, 4))
 
@@ -338,7 +323,7 @@ def plot_training_curves(log_steps, log_loss, log_cost, log_acc,
     plt.title("Cost plot")
     plt.xlabel("update step")
     plt.ylabel("cost")
-    plt.xlim(0, 1000)
+    plt.xlim(0, max(log_steps)* 1)
     plt.ylim(0, max(log_cost) * 1.1)
     plt.legend()
 
@@ -350,7 +335,7 @@ def plot_training_curves(log_steps, log_loss, log_cost, log_acc,
     plt.title("Loss plot")
     plt.xlabel("update step")
     plt.ylabel("loss")
-    plt.xlim(0, 1000)
+    plt.xlim(0, max(log_steps))
     plt.ylim(0, max(log_loss) * 1.1)
     plt.legend()
 
@@ -362,18 +347,15 @@ def plot_training_curves(log_steps, log_loss, log_cost, log_acc,
     plt.title("Accuracy plot")
     plt.xlabel("update step")
     plt.ylabel("accuracy")
-    plt.xlim(0, 1000)
+    plt.xlim(0, max(log_steps))
     plt.ylim(0, 1)
     plt.legend()
 
     plt.tight_layout()
-    plt.savefig("cyclic_training_curves.jpg", dpi=300)
+    plt.savefig(filename, dpi=300)
     plt.show()
 
-plot_training_curves(train_steps_history, train_loss_history, train_cost_history, train_acc_history,
-                     val_loss=val_loss_history, val_cost=val_cost_history, val_acc=val_acc_history)
-
-def plot_eta(eta1, eta2):
+def plot_eta(eta1, eta2, filename):
     plt.figure(figsize=(12, 4))
     log_steps = np.arange(0, len(eta1))
     plt.plot(log_steps, eta1, label='layer 0', color='blue')
@@ -381,11 +363,149 @@ def plot_eta(eta1, eta2):
     plt.title("Learning rate plot")
     plt.xlabel("update step")
     plt.ylabel("learning rate")
-    plt.xlim(0, 1000)
+    plt.xlim(0, max(log_steps))
     plt.ylim(0, max(max(eta1), max(eta2)) * 1.1)
     plt.legend()
     plt.tight_layout()
-    plt.savefig("cyclic_eta.jpg", dpi=300)
+    plt.savefig(filename, dpi=300)
     plt.show()
 
-#plot_eta(eta_history1, eta_history2)
+def DefineGDparams(n_s, cycles, eta_max, eta_min):
+    n_batch = np.int64(5*n/n_s)
+    GDparams = {
+    'n_batch': n_batch,
+    'eta_max': eta_max,
+    'eta_min': eta_min,
+    'n_epochs': 10*cycles,
+    'n_s': n_s   
+    }
+    return GDparams
+
+
+def TrainingCurvesMain(GDparams, lam, trainX, trainY, trainy, valX, valy, curves_filename, testX=None, testy=None):
+    [d, n] = trainX.shape
+    init_net = networkInitialize(10, d, 100)    
+    [trained_net, train_loss_history, train_cost_history, train_acc_history, 
+    val_loss_history, val_cost_history, val_acc_history, train_steps_history, eta_history1, eta_history2] = (
+        Train2LayerNetCyclic(trainX, trainY, trainy, GDparams, init_net, lam, rng2, 
+                             valX=valX, valy=valy, testX=testX, testy=testy))
+
+    plot_training_curves(train_steps_history, train_loss_history, train_cost_history, train_acc_history, curves_filename,
+                        val_loss=val_loss_history, val_cost=val_cost_history, val_acc=val_acc_history)
+
+    # eta_filename = f"cyclic_eta{cycles}.jpg"
+    # plot_eta(eta_history1, eta_history2, eta_filename)
+
+
+# exercise 5
+
+def LoadAllBatches(val_size):
+    # Load all 5 batches
+    X_list, Y_list, y_list = [], [], []
+    for i in range(1, 6):
+        X_batch, Y_batch, y_batch = LoadBatch(f"data_batch_{i}")
+        X_list.append(X_batch)
+        Y_list.append(Y_batch)
+        y_list.append(y_batch)
+
+    # Concatenate all training data (50,000 examples)
+    full_trainX = np.concatenate(X_list, axis=1)
+    full_trainY = np.concatenate(Y_list, axis=1)
+    full_trainy = np.concatenate(y_list, axis=0)
+
+    # Shuffle and split off val_size examples for validation
+    n_total = full_trainX.shape[1]
+    perm = np.random.permutation(n_total)
+    val_idx = perm[:val_size]
+    train_idx = perm[val_size:]
+
+    # Final training set (50,000 - val_size examples)
+    trainX = full_trainX[:, train_idx]
+    trainY = full_trainY[:, train_idx]
+    trainy = full_trainy[train_idx]
+
+    # Validation set (val_size)
+    valX = full_trainX[:, val_idx]
+    valY = full_trainY[:, val_idx]
+    valy = full_trainy[val_idx]
+    return [trainX, trainY, trainy, valX, valY, valy]
+
+
+def grid_search(l_min, l_max, trainX, trainY, trainy, valX, valy, GDparams, filename):
+    # uniform grid of 8 values for lambda
+    l = l_min + (l_max - l_min)*rng2.random(10)
+    l = np.sort(l)
+    for i in range(10):
+        lam = 10**l[i]
+        print(f"lambda = {lam}")
+        init_net = networkInitialize(10, d, 100)    
+        [trained_net, *_] = (
+            Train2LayerNetCyclic(trainX, trainY, trainy, GDparams, init_net, lam, rng2, 
+                                    valX=valX, valy=valy, testX=None, testy=None))
+        # save the accuracies to a file 
+        with open(filename, "a") as f:
+            f.write(f"lambda = {lam}, training accuracy = {ComputeAccuracy(Apply2LayerNetwork(trainX, trained_net), trainy) * 100:.2f}%, validation accuracy = {ComputeAccuracy(Apply2LayerNetwork(valX, trained_net), valy) * 100:.2f}%\n")
+
+
+def exercise5():
+    # Load all batches
+    [trainX, trainY, trainy, valX, valY, valy] = LoadAllBatches(5000)
+    # Normalize the data
+    trainX, valX, _ = NormalizeData(trainX, valX, None)
+    # Set parameters
+    [d, n] = trainX.shape
+    n_batch = 100
+    n_s = 2* np.floor(n / n_batch)
+    # coarse grid search
+    l_min = -5
+    l_max = -1
+    cycles = 1
+    GDparams = {
+        'n_batch': n_batch,
+        'eta_max': 1e-1,
+        'eta_min': 1e-5,
+        'n_epochs': 10*cycles,
+        'n_s': n_s
+    }
+    grid_search(l_min, l_max, trainX, trainY, trainy, valX, valy, GDparams, "coarse_lambda_accuracies.txt")
+    # fine grid search
+    l_min = -4
+    l_max = -2
+    cycles = 2
+    GDparams2 = {
+        'n_batch': n_batch,
+        'eta_max': 1e-1,
+        'eta_min': 1e-5,
+        'n_epochs': 10*cycles,
+        'n_s': n_s
+    }
+    grid_search(l_min, l_max, trainX, trainY, trainy, valX, valy, GDparams2, "fine_lambda_accuracies.txt")
+    # best lam setting 
+    lam = 0.0022
+    [trainX, trainY, trainy, valX, valY, valy] = LoadAllBatches(1000)
+    trainX, valX, _ = NormalizeData(trainX, valX, None)
+    cycles = 3
+    [d, n] = trainX.shape
+    n_s = 2* np.floor(n / n_batch)
+    GDparams = {
+        'n_batch': n_batch,
+        'eta_max': 1e-1,
+        'eta_min': 1e-5,
+        'n_epochs': 10*cycles,
+        'n_s': n_s
+    }
+    TrainingCurvesMain(GDparams, lam, trainX, trainY, trainy, valX, valy, "cyclic_training_curves_ex5.jpg", testX, testy)
+
+# exercise 1
+exercise1()
+
+# exercise 3
+GDParams3  = DefineGDparams(500, 1, 1e-1, 1e-5)
+TrainingCurvesMain(GDParams3, 0.01, trainX, trainY, trainy, valX, valy, "cyclic_training_curves_ex3.jpg", testX, testy)
+
+# exercise 4
+GDParams4  = DefineGDparams(800, 3, 1e-1, 1e-5)
+TrainingCurvesMain(GDParams4, 0.01, trainX, trainY, trainy, valX, valy, "cyclic_training_curves_ex4.jpg", testX, testy)
+
+
+exercise5()
