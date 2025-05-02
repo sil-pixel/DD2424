@@ -64,6 +64,7 @@ Layer 1: max relative error = 3.08e-16
 The extremely small relative errors confirm that the analytical gradients are implemented correctly and align closely with the numerical gradients. 
 \section*{Cyclical Learning Rate Training Curves}
 
+\subsection*{Exercise 3}
 The curves below illustrate the training and validation cost, loss, and accuracy using this learning rate schedule using the default values for the hyper-parameters from the assignment.
 
 \begin{figure}[H]
@@ -84,6 +85,19 @@ Accuracy for testing : 47.54% with steps 1000
 As seen in the plots, the training and validation curves in \autoref{fig:cyclical_lr_curves1} show consistent descent, that resemble \texttt{Figure 3} in the assignment.
 The curves are smooth and reflect the expected rise and fall of learning rate across one cycle. 
 
+The cycle length was set to 1000 iterations, with a minimum learning rate of \(1e^{-5}\) and a maximum learning rate of \(1e^{-1}\) as seen in the plot below.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{cyclic_eta1.jpg}
+    \caption{Plot of learning rate across the update steps.}
+    \label{fig:cyclic_eta1}
+\end{figure}
+
+
+\subsection*{Exercise 4}
+
+The same training was performed with a longer cycle length of 4800 iterations, while keeping the minimum and maximum learning rates the same as before.
+The following are the training and validation curves for this run:
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{cyclic_training_curves_ex4.jpg}
@@ -94,26 +108,43 @@ The curves are smooth and reflect the expected rise and fall of learning rate ac
 The following are accuracy results:
 
 \begin{lstlisting}[caption={Training and validation accuracy for three cycles}, label={lst:accuracy2}]
-Accuracy for training : 73.88% with steps 4830
-Accuracy for validation : 48.48% with steps 4830
-Accuracy for testing : 48.69% with steps 4830
+Accuracy for training : 73.90% with steps 4800
+Accuracy for validation : 48.54% with steps 4800
+Accuracy for testing : 48.81% with steps 4800
 \end{lstlisting}
+
+The plot of learning rate across the update steps is shown below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{cyclic_eta2.jpg}
+    \caption{Plot of learning rate across the update steps.}
+    \label{fig:cyclic_eta2}
+\end{figure}
 
 As seen in the plots, the training and validation curves in \autoref{fig:cyclical_lr_curves2} display more fluctuations compared to the first training algorithm, similar to \texttt{Figure 4} in the assignment. 
 Despite these oscillations, the validation accuracy improved and converges to a higher value than the first training algorithm.
 This suggests that longer cycles help escape local minima and explore the loss landscape more effectively, though at the cost of more training instability.
 
+
 Overall, cyclical learning rates provided effective control over the optimization dynamics, offering a balance between fast convergence and robustness against overfitting.
 
 \section*{Coarse search for lambda}
 
-I performed a coarse search for lambda by choosing 10 different values of lambda, ranging from $10^{-5}$ to $10^{-1}$ using a uniform grid and logarithm scale as mentioned in the assignment.
+I performed a coarse search for lambda by choosing 100 different values of lambda, ranging from $10^{-5}$ to $10^{-1}$ using a uniform grid and logarithm scale as mentioned in the assignment.
 I ran the training for one cycle with hyper-parameters set to eta\_min = 1e-5, eta\_max = 1e-1, and n\_batch = 100. 
+The training and validation curves for this run are shown below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{lambda_accuracies.jpg}
+    \caption{Training and validation accuracies for a range of lamdas.}
+    \label{fig:coarse_search_curves}
+\end{figure}
+
 The following are the best three performing networks based on validation accuracy:
 \begin{lstlisting}[caption={Coarse search for lambda}, label={lst:coarse_search}]
-lambda=0.00033731757047661924, training accuracy=72.04%, validation accuracy=53.92%
-lambda=2.0365736267721594e-05, training accuracy=72.40%, validation accuracy=53.32%
-lambda=0.00018613396927305185, training accuracy=72.35%, validation accuracy=53.32%
+lambda=0.0006246592215568911, training accuracy=58.73%, validation accuracy=52.90%
+lambda=0.0007730255340781429, training accuracy=58.60%, validation accuracy=52.80%
+lambda=0.0014004414195479882, training accuracy=58.03%, validation accuracy=52.58%
 \end{lstlisting}
 
 \section*{Fine search for lambda}
@@ -122,13 +153,13 @@ I performed a fine search for lambda by choosing 10 different values of lambda i
 I ran the training for two cycles with the same hyper-parameters as before.
 The following are the best three performing networks based on validation accuracy:
 \begin{lstlisting}[caption={Fine search for lambda}, label={lst:fine_search}]
-lambda=0.0022477040596100145, training accuracy=67.24%, validation accuracy=54.76%
-lambda=0.00037294936421987206, training accuracy=71.87%, validation accuracy=54.34%
-lambda=0.004726183203219606, training accuracy=62.84%, validation accuracy=54.34% 
+lambda=0.0022477040596100145, training accuracy=62.12%, validation accuracy=55.12%
+lambda=0.004726183203219606, training accuracy=59.92%, validation accuracy=54.50%
+lambda=0.0005807904703734551, training accuracy=63.48%, validation accuracy=54.36%
 \end{lstlisting}
 
 As mentioned in the assignment, all the 10 values of lambda from the fine search displayed validation accuracies above 50\%, indicating that the model is learning effectively.
-The best performing lambda from the fine search was 0.0022, which achieved a training accuracy of 67.24\% and a validation accuracy of 54.76\%.
+The best performing lambda from the fine search was 0.0022, which achieved a training accuracy of 62.12\% and a validation accuracy of 55.12\%.
 
 \section*{Best found lambda}
 I performed a final training run with the best lambda value of 0.0022, using the same hyper-parameters as before.
@@ -143,11 +174,19 @@ The plot below indicates the training and validation curves for this run:
     \label{fig:best_lambda_curves}
 \end{figure}
 
+The plot of learning rate across the update steps is shown below:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{cyclic_eta3.jpg}
+    \caption{Plot of learning rate across the update steps with best lambda.}
+    \label{fig:best_lambda_eta}
+\end{figure}
+
 The following are accuracy results:
 \begin{lstlisting}[caption={Training and validation accuracy for best lambda}, label={lst:best_lambda_accuracy}]
-Accuracy for training : 57.01% with steps 14700
-Accuracy for validation : 50.70% with steps 14700
-Accuracy for testing : 48.38% with steps 14700
+Accuracy for training : 64.19% with steps 5880
+Accuracy for validation : 54.70% with steps 5880
+Accuracy for testing : 54.44% with steps 5880
 \end{lstlisting}
 
 The training curves for \( \lambda = 0.0022 \), identified through a coarse-to-fine grid search, show reduced overfitting and improved generalization compared to earlier experiments with \(\lambda = 0.01 \).

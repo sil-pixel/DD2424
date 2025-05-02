@@ -230,6 +230,7 @@ def MiniBatch2LayerGDCyclic(X, Y, y, GDparams, init_net, lam, rng, valX=None, va
     eta_history1 = []
     eta_history2 = []
     step = 0
+    current_cycle = -1
     trained_net = copy.deepcopy(init_net)
     n_batch = GDparams['n_batch']
     eta_max = GDparams['eta_max']
@@ -237,11 +238,11 @@ def MiniBatch2LayerGDCyclic(X, Y, y, GDparams, init_net, lam, rng, valX=None, va
     n_epochs = GDparams['n_epochs']
     n_s = GDparams['n_s']
     n = X.shape[1]
-    max_steps = n_epochs * (n // n_batch)
-    n_cycles = max_steps // (2 * n_s)
-    # log 10 times per cycle
-    log_check = np.int64(max_steps / (10 * n_cycles))
-    for epoch in range(n_epochs):
+    max_cycles = int(n_epochs/10)
+    print(f"max_cycles: {max_cycles}")
+    steps_per_cycle = 2 * n_s
+    log_interval = steps_per_cycle // 10  # Log 10 times per cycle
+    while current_cycle < max_cycles:
         # Shuffle indices for current epoch
         perm = rng.permutation(n)
         X = X[:, perm]
@@ -271,8 +272,12 @@ def MiniBatch2LayerGDCyclic(X, Y, y, GDparams, init_net, lam, rng, valX=None, va
             eta_history1.append(eta_t0)
             eta_history2.append(eta_t1)
 
-            # Store the current step and learning rate
-            if step % log_check == 0 or step == max_steps - 1:
+            if eta_t0 == eta_min and eta_t1 == eta_min:
+                current_cycle += 1
+                print(f"Cycle {current_cycle} started")
+
+            if step % log_interval == 0:
+                # Store the current step and learning rate for each epoch 
                 steps_history.append(step)
                 loss = ComputeLoss(Pbatch, ybatch)
                 loss_history.append(loss)
@@ -287,9 +292,14 @@ def MiniBatch2LayerGDCyclic(X, Y, y, GDparams, init_net, lam, rng, valX=None, va
                 val_cost_history.append(val_cost)
                 val_acc = ComputeAccuracy(Apply2LayerNetwork(valX, trained_net), valy)
                 val_acc_history.append(val_acc)
-            
 
+            if current_cycle >= max_cycles:
+                print("Maximum number of cycles reached")
+                break
+            # else Update the step
             step += 1
+    
+
 
     # Compute training loss and accuracy on full dataset 
     acc = ComputeAccuracy(Apply2LayerNetwork(X, trained_net), y)
@@ -393,8 +403,8 @@ def TrainingCurvesMain(GDparams, lam, trainX, trainY, trainy, valX, valy, curves
     plot_training_curves(train_steps_history, train_loss_history, train_cost_history, train_acc_history, curves_filename,
                         val_loss=val_loss_history, val_cost=val_cost_history, val_acc=val_acc_history)
 
-    # eta_filename = f"cyclic_eta{cycles}.jpg"
-    # plot_eta(eta_history1, eta_history2, eta_filename)
+    eta_filename = f"cyclic_eta.jpg"
+    plot_eta(eta_history1, eta_history2, eta_filename)
 
 
 # exercise 5
@@ -432,9 +442,12 @@ def LoadAllBatches(val_size):
 
 
 def grid_search(l_min, l_max, trainX, trainY, trainy, valX, valy, GDparams, filename):
-    # uniform grid of 8 values for lambda
+    # uniform grid of 10 values for lambda
+    #rng2 = np.random.default_rng(2025)
     l = l_min + (l_max - l_min)*rng2.random(10)
     l = np.sort(l)
+    # training_accuracies = []
+    # validation_accuracies = []
     for i in range(10):
         lam = 10**l[i]
         print(f"lambda = {lam}")
@@ -442,9 +455,28 @@ def grid_search(l_min, l_max, trainX, trainY, trainy, valX, valy, GDparams, file
         [trained_net, *_] = (
             Train2LayerNetCyclic(trainX, trainY, trainy, GDparams, init_net, lam, rng2, 
                                     valX=valX, valy=valy, testX=None, testy=None))
+        # Compute training and validation accuracy
+        train_acc = ComputeAccuracy(Apply2LayerNetwork(trainX, trained_net), trainy)
+        val_acc = ComputeAccuracy(Apply2LayerNetwork(valX, trained_net), valy)
+        # training_accuracies.append(train_acc)
+        # validation_accuracies.append(val_acc)
         # save the accuracies to a file 
         with open(filename, "a") as f:
-            f.write(f"lambda = {lam}, training accuracy = {ComputeAccuracy(Apply2LayerNetwork(trainX, trained_net), trainy) * 100:.2f}%, validation accuracy = {ComputeAccuracy(Apply2LayerNetwork(valX, trained_net), valy) * 100:.2f}%\n")
+            f.write(f"lambda = {lam}, training accuracy = {train_acc * 100:.2f}%, validation accuracy = {val_acc* 100:.2f}%\n")
+        
+    # plot the accuracies for all lambdas
+    # plt.figure()
+    # plt.plot(10**l, training_accuracies, label='training', color='green')
+    # plt.plot(10**l, validation_accuracies, label='validation', color='red')
+    # plt.title("Accuracy plot")
+    # plt.xlabel("lambda (log scale)")
+    # plt.ylabel("accuracy")
+    # plt.xscale('log')
+    # plt.xlim(10**l_min, 10**l_max)
+    # plt.ylim(0, 1)
+    # plt.legend()
+    # plt.savefig("lambda_accuracies2.jpg", dpi=300)
+    # plt.show()
 
 
 def exercise5():
