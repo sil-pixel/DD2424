@@ -1,6 +1,8 @@
 import torch
 import numpy as np
 
+torch.manual_seed(42)
+
 # assumes X has size d x tau, h0 has size m x 1, etc
 def ComputeGradsWithTorch(X, y, h0, RNN):
 
@@ -29,9 +31,10 @@ def ComputeGradsWithTorch(X, y, h0, RNN):
         # Code to apply the RNN to hprev and Xt[:, t:t+1] to compute the hidden scores "Hs" at timestep t
         # (ie equations (1,2) in the assignment instructions)
         # Store results in Hs
-        Hs[t] = apply_tanh(torch_network['U'] @ Xt[:, t:t+1] + torch_network['W'] @ hprev + torch_network['b'])
+        a = torch.matmul(torch_network['U'], Xt[:, t:t+1]) + torch.matmul(torch_network['W'], hprev) + torch_network['b'] # (m,1)
+        Hs[:, t] = apply_tanh(a).squeeze(1)
         # Don't forget to update hprev!
-        hprev = Hs[t]
+        hprev = Hs[:, t:t+1].clone() # (m,1)
         #### END of your code ######            
 
     Os = torch.matmul(torch_network['V'], Hs) + torch_network['c']        
