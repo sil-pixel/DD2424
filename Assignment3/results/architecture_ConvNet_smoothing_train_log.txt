@@ -1,0 +1,14 @@
+
+==================================================
+TRAINING SUMMARY
+==================================================
+Arch ConvNet_smoothing
+Time: 231.30s
+Final val acc: 0.6800
+Final test acc: 0.6605
+Train samples: 49000
+Threads: 4
+LR: 1e-05–0.1
+Cycles: 4
+Batch: 100
+Lambda: 0.0025

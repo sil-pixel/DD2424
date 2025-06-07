@@ -1,0 +1,35 @@
+
+Exercise 3, arch 2, 49000 train, 4 threads
+Training Arch 2: f=4 nf=10 nh=50
+Initial validation loss: 2.6518, Initial validation accuracy: 0.0860
+Initial training loss: 2.6215, Initial training accuracy: 0.1005
+Update step 400/11200, Cycle 1/3, Cycle step 400/800, Learning rate: 0.049880, Train loss: 1.6542, Train accuracy: 0.4600, Validation loss: 1.7591, Validation accuracy: 0.3960
+Update step 800/11200, Cycle 1/3, Cycle step 800/800, Learning rate: 0.099875, Train loss: 1.1898, Train accuracy: 0.6000, Validation loss: 1.5262, Validation accuracy: 0.4310
+Update step 1200/11200, Cycle 1/3, Cycle step 1200/800, Learning rate: 0.050130, Train loss: 1.0612, Train accuracy: 0.6000, Validation loss: 1.3868, Validation accuracy: 0.5120
+Update step 1600/11200, Cycle 1/3, Cycle step 1600/800, Learning rate: 0.000135, Train loss: 1.3208, Train accuracy: 0.5200, Validation loss: 1.3218, Validation accuracy: 0.5330
+Update step 2000/11200, Cycle 2/3, Cycle step 400/1600, Learning rate: 0.024945, Train loss: 1.1677, Train accuracy: 0.5500, Validation loss: 1.3272, Validation accuracy: 0.5330
+Update step 2400/11200, Cycle 2/3, Cycle step 800/1600, Learning rate: 0.049943, Train loss: 1.0522, Train accuracy: 0.6500, Validation loss: 1.3449, Validation accuracy: 0.5150
+Update step 2800/11200, Cycle 2/3, Cycle step 1200/1600, Learning rate: 0.074940, Train loss: 1.1443, Train accuracy: 0.6000, Validation loss: 1.3150, Validation accuracy: 0.5240
+Update step 3200/11200, Cycle 2/3, Cycle step 1600/1600, Learning rate: 0.099938, Train loss: 0.8693, Train accuracy: 0.7200, Validation loss: 1.3472, Validation accuracy: 0.5140
+Update step 3600/11200, Cycle 2/3, Cycle step 2000/1600, Learning rate: 0.075065, Train loss: 1.0442, Train accuracy: 0.6400, Validation loss: 1.2967, Validation accuracy: 0.5380
+Update step 4000/11200, Cycle 2/3, Cycle step 2400/1600, Learning rate: 0.050067, Train loss: 0.9979, Train accuracy: 0.6300, Validation loss: 1.2511, Validation accuracy: 0.5680
+Update step 4400/11200, Cycle 2/3, Cycle step 2800/1600, Learning rate: 0.025070, Train loss: 1.1061, Train accuracy: 0.6100, Validation loss: 1.2400, Validation accuracy: 0.5650
+Update step 4800/11200, Cycle 2/3, Cycle step 3200/1600, Learning rate: 0.000072, Train loss: 0.9802, Train accuracy: 0.6900, Validation loss: 1.2136, Validation accuracy: 0.5710
+Update step 5200/11200, Cycle 3/3, Cycle step 400/3200, Learning rate: 0.012478, Train loss: 0.8833, Train accuracy: 0.6900, Validation loss: 1.2161, Validation accuracy: 0.5730
+Update step 5600/11200, Cycle 3/3, Cycle step 800/3200, Learning rate: 0.024976, Train loss: 1.0707, Train accuracy: 0.6800, Validation loss: 1.2314, Validation accuracy: 0.5810
+Update step 6000/11200, Cycle 3/3, Cycle step 1200/3200, Learning rate: 0.037475, Train loss: 1.1295, Train accuracy: 0.5700, Validation loss: 1.2388, Validation accuracy: 0.5760
+Update step 6400/11200, Cycle 3/3, Cycle step 1600/3200, Learning rate: 0.049974, Train loss: 0.9974, Train accuracy: 0.6400, Validation loss: 1.2478, Validation accuracy: 0.5680
+Update step 6800/11200, Cycle 3/3, Cycle step 2000/3200, Learning rate: 0.062473, Train loss: 1.0280, Train accuracy: 0.6300, Validation loss: 1.2606, Validation accuracy: 0.5460
+Update step 7200/11200, Cycle 3/3, Cycle step 2400/3200, Learning rate: 0.074971, Train loss: 0.9315, Train accuracy: 0.6800, Validation loss: 1.2612, Validation accuracy: 0.5600
+Update step 7600/11200, Cycle 3/3, Cycle step 2800/3200, Learning rate: 0.087470, Train loss: 0.8837, Train accuracy: 0.7500, Validation loss: 1.2345, Validation accuracy: 0.5600
+Update step 8000/11200, Cycle 3/3, Cycle step 3200/3200, Learning rate: 0.099969, Train loss: 0.8913, Train accuracy: 0.7100, Validation loss: 1.2951, Validation accuracy: 0.5370
+Update step 8400/11200, Cycle 3/3, Cycle step 3600/3200, Learning rate: 0.087532, Train loss: 0.9015, Train accuracy: 0.6800, Validation loss: 1.2533, Validation accuracy: 0.5630
+Update step 8800/11200, Cycle 3/3, Cycle step 4000/3200, Learning rate: 0.075034, Train loss: 0.8746, Train accuracy: 0.6500, Validation loss: 1.2549, Validation accuracy: 0.5560
+Update step 9200/11200, Cycle 3/3, Cycle step 4400/3200, Learning rate: 0.062535, Train loss: 0.9931, Train accuracy: 0.6900, Validation loss: 1.2364, Validation accuracy: 0.5650
+Update step 9600/11200, Cycle 3/3, Cycle step 4800/3200, Learning rate: 0.050036, Train loss: 0.8881, Train accuracy: 0.7200, Validation loss: 1.2130, Validation accuracy: 0.5790
+Update step 10000/11200, Cycle 3/3, Cycle step 5200/3200, Learning rate: 0.037537, Train loss: 0.9458, Train accuracy: 0.6800, Validation loss: 1.2059, Validation accuracy: 0.5700
+Update step 10400/11200, Cycle 3/3, Cycle step 5600/3200, Learning rate: 0.025039, Train loss: 0.8243, Train accuracy: 0.7400, Validation loss: 1.1960, Validation accuracy: 0.5810
+Update step 10800/11200, Cycle 3/3, Cycle step 6000/3200, Learning rate: 0.012540, Train loss: 0.7904, Train accuracy: 0.7200, Validation loss: 1.1867, Validation accuracy: 0.5940
+Update step 11200/11200, Cycle 3/3, Cycle step 6400/3200, Learning rate: 0.000041, Train loss: 0.9633, Train accuracy: 0.6200, Validation loss: 1.1680, Validation accuracy: 0.5860
+Training completed in 31.04 seconds.
+Final test acc: 0.5735
