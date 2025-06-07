@@ -75,7 +75,7 @@ def ForwardPass(conv_outputs_mat, W1, W2, b1, b2):
     p = softmax(s)
     return conv_flat, h, p
     
-def BackwardPass(Y, P, h, W1, W2, conv_flat, MX):
+def BackwardPass(Y, P, h, W1, W2, conv_flat, conv_outputs_mat, MX):
     G_batch = -(Y - P)  # (10, 5)
     dL_dW2 = (G_batch @ h.T)/n 
     dL_db2 = np.mean(G_batch, axis=1, keepdims=True)  # (10, 1)
@@ -89,6 +89,7 @@ def BackwardPass(Y, P, h, W1, W2, conv_flat, MX):
     G_batch = W1.T @ G_batch  # (10, 128) @ (10, 5) -> (128, 5)
     # reshape for backpropagation
     GG = G_batch.reshape((n_patches, nf, n), order='C')  # (64, 2, 5)
+    GG = GG * (conv_outputs_mat > 0)  # ReLU derivative
     MXt = np.transpose(MX, (1, 0, 2))  # (48, 64, 5)
     grads_Fs_flat = np.einsum('ijn,jln->il', MXt, GG, optimize=True)  # (48, 2)
     grads = {
@@ -128,7 +129,7 @@ def exercise2(conv_outputs_mat):
     print(f"Max difference for p is : {relative_error(p, p_data)}")  
     Y = load_data['Y']   # (10, 5)
     Y = LabelSmoothing(Y, 0.1, False)  # Smooth the labels
-    grads = BackwardPass(Y, p, h, W1, W2, conv_flat, MX)
+    grads = BackwardPass(Y, p, h, W1, W2, conv_flat, conv_outputs_mat, MX)
     for key in ['Fs_flat', 'W1', 'W2', 'b1', 'b2']:
         print(f"Max difference for {key} is: {relative_error(grads[key], load_data[f'grad_{key}'])}") 
     
@@ -227,7 +228,7 @@ class ConvNet:
         # update Fs_flat
         self.Fs_flat = self.Fs.reshape((self.f * self.f * 3, self.nf), order='C')
     
-def trainNetwork(model, X_train, Y_train, y_train, X_val, Y_val, y_val, GDParams, lam, smoothing=False):
+def trainNetwork(model, X_train, Y_train, y_train, X_val, Y_val, y_val, GDParams, lam, smoothing=False, increasing_cyclic_steps=True):
     n = X_train.shape[1]
     n_batch = GDParams['n_batch']
     eta_max = GDParams['eta_max']
@@ -235,7 +236,10 @@ def trainNetwork(model, X_train, Y_train, y_train, X_val, Y_val, y_val, GDParams
     n_cycles = GDParams['n_cycles']
     n_s = GDParams['n_s']
     log_freq = n_s/2
-    steps = [n_s*2**i for i in range(n_cycles)]
+    if not increasing_cyclic_steps:
+        steps = [n_s] * n_cycles
+    else:
+        steps = [n_s*2**i for i in range(n_cycles)]
     total_steps =  sum(2*s for s in steps)
     Y_train = LabelSmoothing(Y_train, 0.1, smoothing)
     history = {i:[] for i in ['loss_train', 'acc_train', 'loss_val', 'acc_val', 'update_steps', 'learning_rates', 'training_time']}
@@ -397,7 +401,39 @@ def plot_bar_graph(arch_test_acc, logdir="Assignment3/results"):
 
 #  ----------------------------------------------------------------------------------------------- #
 
-def exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD_Params, l2, logdir="Assignment3/results", num_threads=4):
+
+def basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params, l2, logdir="Assignment3/results", num_threads=4, n_train=49000):
+    cfg = arch_cfg[2]
+    arch = '2_basic'
+    log_file = os.path.join(logdir, f'architecture_{arch}_train_log.txt')
+    orig_stdout = sys.stdout
+    sys.stdout = open(log_file, 'w')
+
+    try:
+        print(f"\nExercise 3 , arch {arch}, {n_train} train, {num_threads} threads")
+        print(f"Training Arch {arch}: f={cfg['f']} nf={cfg['nf']} nh={cfg['nh']}")
+        model = ConvNet(f=cfg['f'], nf=cfg['nf'], nh=cfg['nh'])
+        hist = trainNetwork(model, Xtr, Ytr, ytr, Xv, Yv, yv, GD_Params, l2, smoothing=False, increasing_cyclic_steps=False)
+        test_loss, test_acc = model.compute_loss_accuracy(Xt, yt)
+        print(f"Basic Architecture without increasing cyclic steps : Final test acc: {test_acc:.4f}, training time: {hist['training_time']:.2f}s")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        traceback.print_exc()
+    finally:
+        sys.stdout.close()
+        sys.stdout = orig_stdout
+        print(f"Training log saved to {log_file}")
+        print("Training completed for architecture", arch)
+        print("Plots/results saved in", logdir)
+
+
+
+
+
+
+#  ----------------------------------------------------------------------------------------------- #
+
+def exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD_Params, l2, logdir="Assignment3/results", num_threads=4, n_train=49000):
     arch_test_acc = {i:[] for i in ['architectures', 'test_acc', 'training_time']}
 
     for arch in architectures:
@@ -440,7 +476,7 @@ def exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD
 #  ----------------------------------------------------------------------------------------------- #
 
 
-def exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params, l2, logdir="Assignment3/results", num_threads=4):
+def exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params, l2, logdir="Assignment3/results", num_threads=4, n_train=49000):
     for smoothing in [False, True]:
         arch = "ConvNet_smoothing" if smoothing else "ConvNet_no_smoothing"
         log_file = os.path.join(logdir, f'{arch}_train_log.txt')
@@ -505,11 +541,12 @@ if __name__ == "__main__":
     print(f"Loading data with {n_train} training samples...")
     Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt = load_cifar(data_path, n_train)
     print(f"Loaded {Xtr.shape[1]} train, {Xv.shape[1]} val, {Xt.shape[1]} test samples")
-    exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, 
-              architectures, arch_cfg, GD_Params, l2, logdir, num_threads)
-    cfg = dict(f=4, nf=40, nh=300)
-    l2 = 0.0025
-    GD_Params = dict(n_batch=100, eta_min=1e-5, eta_max=1e-1, n_s=800, n_cycles=4)
-    exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, cfg, GD_Params, l2, logdir, num_threads)
-    print("All exercises completed successfully.")
+    basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
+    # exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, 
+    #           architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
+    # cfg = dict(f=4, nf=40, nh=300)
+    # l2 = 0.0025
+    # GD_Params = dict(n_batch=100, eta_min=1e-5, eta_max=1e-1, n_s=800, n_cycles=4)
+    # exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, cfg, GD_Params, l2, logdir, num_threads, n_train)
+    # print("All exercises completed successfully.")
     
