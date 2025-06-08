@@ -123,12 +123,18 @@ def verify_data_gradients_with_torch(load_data):
     for key in ['Fs_flat', 'W1', 'W2', 'b1', 'b2']:
         error = relative_error(torch_grads[key], ref_grads[key])
         print(f"Max difference for {key}: {error}")
+        mean_error = relative_mean_error(torch_grads[key], ref_grads[key])
+        print(f"Max difference for {key}: {mean_error}")
     
     return torch_grads
 
 def relative_error(a, b):
     return np.max(np.abs(a - b) / np.maximum(np.abs(a), np.abs(b) + 1e-8))
     
+
+def relative_mean_error(a, b):
+    return np.mean(np.abs(a - b) / np.maximum(np.abs(a), np.abs(b) + 1e-8))
+
 
 def verify_gradients_with_torch(grads, load_data):
     X = load_data['X']
@@ -147,4 +153,6 @@ def verify_gradients_with_torch(grads, load_data):
     for key in ['Fs_flat', 'W1', 'W2', 'b1', 'b2']:
         error = relative_error(torch_grads[key], grads[key])
         print(f"Max difference with torch for {key}: {error}")
+        mean_error = relative_mean_error(torch_grads[key], grads[key])
+        print(f"Mean difference with torch for {key}: {mean_error}")
     

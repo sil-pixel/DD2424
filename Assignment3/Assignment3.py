@@ -28,6 +28,9 @@ MX = np.zeros((n_patches, (f*f*3), n))
 def relative_error(a, b):
     return np.max(np.abs(a - b) / np.maximum(np.abs(a), np.abs(b) + 1e-8))
 
+def relative_mean_error(a, b):
+    return np.mean(np.abs(a - b) / np.maximum(np.abs(a), np.abs(b) + 1e-8))
+
 def exercise1():
     X_ims = np.transpose(X.reshape((32, 32, 3, n), order='F'), (1, 0, 2, 3)) # (32, 32, 3, 5)
     X_conv = np.zeros((32//f, 32//f, nf, n))
@@ -44,6 +47,7 @@ def exercise1():
 
     # compare X_conv and conv_outputs
     print(f"Max difference between X_conv and conv_outputs is : {relative_error(X_conv, conv_outputs)}")   
+    print(f"Mean difference between X_conv and conv_outputs is : {relative_mean_error(X_conv, conv_outputs)}")   
 
     # populate MX matrix 
     for i in range(n):
@@ -60,7 +64,8 @@ def exercise1():
     conv_outputs_flat = conv_outputs.reshape((n_patches, nf, n), order='C')  # (64, 2, 5)
 
     # compare conv_outputs_mat and conv_outputs_flat
-    print(f"Max difference between conv_outputs_mat and conv_outputs_flat is : {relative_error(conv_outputs_mat, conv_outputs_flat)}")   
+    print(f"Max difference between conv_outputs_mat and conv_outputs_flat is : {relative_error(conv_outputs_mat, conv_outputs_flat)}")  
+    print(f"Mean difference between conv_outputs_mat and conv_outputs_flat is : {relative_mean_error(conv_outputs_mat, conv_outputs_flat)}")   
     return conv_outputs_mat, Fs_flat
 
 
@@ -87,11 +92,12 @@ def BackwardPass(Y, P, h, W1, W2, conv_flat, conv_outputs_mat, MX):
     dL_db1 = np.mean(G_batch, axis=1, keepdims=True)  # (10, 1)
     # gradient wrt conv_flat
     G_batch = W1.T @ G_batch  # (10, 128) @ (10, 5) -> (128, 5)
+    G_batch = G_batch * (conv_flat > 0)  # ReLU derivative
     # reshape for backpropagation
     GG = G_batch.reshape((n_patches, nf, n), order='C')  # (64, 2, 5)
     GG = GG * (conv_outputs_mat > 0)  # ReLU derivative
     MXt = np.transpose(MX, (1, 0, 2))  # (48, 64, 5)
-    grads_Fs_flat = np.einsum('ijn,jln->il', MXt, GG, optimize=True)  # (48, 2)
+    grads_Fs_flat = np.einsum('ijn,jln->il', MXt, GG, optimize=True)/n # (48, 2)
     grads = {
         'Fs_flat': grads_Fs_flat,
         'W1': dL_dW1,
@@ -121,17 +127,22 @@ def exercise2(conv_outputs_mat):
     data_conv_flat = load_data['conv_flat']  
     # compare conv_flat and data_conv_flat
     print(f"Max difference for conv_flat is : {relative_error(conv_flat, data_conv_flat)}")  
+    print(f"Mean difference for conv_flat is : {relative_mean_error(conv_flat, data_conv_flat)}")  
     # compare x1 and load_data['x1']
     x1_data = load_data['X1']  # (10, 5)
     print(f"Max difference for h is : {relative_error(h, x1_data)}")  
+    print(f"Mean difference for h is : {relative_mean_error(h, x1_data)}")  
     # compare p and load_data['p']  
     p_data = load_data['P']  # (10, 5)
     print(f"Max difference for p is : {relative_error(p, p_data)}")  
+    print(f"Mean difference for p is : {relative_mean_error(p, p_data)}")  
+
     Y = load_data['Y']   # (10, 5)
     Y = LabelSmoothing(Y, 0.1, False)  # Smooth the labels
     grads = BackwardPass(Y, p, h, W1, W2, conv_flat, conv_outputs_mat, MX)
     for key in ['Fs_flat', 'W1', 'W2', 'b1', 'b2']:
         print(f"Max difference for {key} is: {relative_error(grads[key], load_data[f'grad_{key}'])}") 
+        print(f"Mean difference for {key} is: {relative_mean_error(grads[key], load_data[f'grad_{key}'])}") 
     
     verify_gradients_with_torch(grads, load_data)
     verify_data_gradients_with_torch(load_data)
@@ -237,7 +248,7 @@ def trainNetwork(model, X_train, Y_train, y_train, X_val, Y_val, y_val, GDParams
     n_s = GDParams['n_s']
     log_freq = n_s/2
     if not increasing_cyclic_steps:
-        steps = [n_s] * n_cycles
+        steps = [n_s for _ in range(n_cycles)]
     else:
         steps = [n_s*2**i for i in range(n_cycles)]
     total_steps =  sum(2*s for s in steps)
@@ -336,26 +347,26 @@ def save_results(args, GD_Params, lambda_reg, hist, test_acc, arch, logdir="Assi
 
 def plotting(history, logdir="Assignment3/results", arch="convnet"):
     os.makedirs(logdir, exist_ok=True)
-    plt.figure(figsize=(12, 6))
-    plt.subplot(1, 2, 1)
-    plt.plot(history['update_steps'], history['loss_train'], label='Train Loss')
-    plt.plot(history['update_steps'], history['loss_val'], label='Val Loss')
-    plt.xlabel('Update Steps')
-    plt.ylabel('Loss')
-    plt.title('Loss vs Update Steps')
-    plt.legend()
+    # plt.figure(figsize=(12, 6))
+    # plt.subplot(1, 2, 1)
+    # plt.plot(history['update_steps'], history['loss_train'], label='Train Loss')
+    # plt.plot(history['update_steps'], history['loss_val'], label='Val Loss')
+    # plt.xlabel('Update Steps')
+    # plt.ylabel('Loss')
+    # plt.title('Loss vs Update Steps')
+    # plt.legend()
     
-    plt.subplot(1, 2, 2)
-    plt.plot(history['update_steps'], history['acc_train'], label='Train Accuracy')
-    plt.plot(history['update_steps'], history['acc_val'], label='Val Accuracy')
-    plt.xlabel('Update Steps')
-    plt.ylabel('Accuracy')
-    plt.title('Accuracy vs Update Steps')
-    plt.legend()
+    # plt.subplot(1, 2, 2)
+    # plt.plot(history['update_steps'], history['acc_train'], label='Train Accuracy')
+    # plt.plot(history['update_steps'], history['acc_val'], label='Val Accuracy')
+    # plt.xlabel('Update Steps')
+    # plt.ylabel('Accuracy')
+    # plt.title('Accuracy vs Update Steps')
+    # plt.legend()
     
-    plt.tight_layout()
-    plt.savefig(os.path.join(logdir, f'architecture_{arch}_training_plot.png'))
-    plt.show()
+    # plt.tight_layout()
+    # plt.savefig(os.path.join(logdir, f'architecture_{arch}_training_plot.png'))
+    # plt.show()
 
     plt.figure(figsize=(10, 6))
     plt.plot(history['update_steps'], history['learning_rates'], label='Learning Rate')
@@ -364,7 +375,7 @@ def plotting(history, logdir="Assignment3/results", arch="convnet"):
     plt.title('Learning Rate vs Update Steps')
     plt.legend()
     plt.tight_layout()
-    plt.savefig(os.path.join(logdir, f'architecture_{arch}_learning_rate_plot.png'))
+    plt.savefig(os.path.join(logdir, f'architecture_basic_{arch}_learning_rate_plot.png'))
     plt.show()
 
 def plot_bar_graph(arch_test_acc, logdir="Assignment3/results"):
@@ -402,30 +413,36 @@ def plot_bar_graph(arch_test_acc, logdir="Assignment3/results"):
 #  ----------------------------------------------------------------------------------------------- #
 
 
-def basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params, l2, logdir="Assignment3/results", num_threads=4, n_train=49000):
-    cfg = arch_cfg[2]
-    arch = '2_basic'
-    log_file = os.path.join(logdir, f'architecture_{arch}_train_log.txt')
-    orig_stdout = sys.stdout
-    sys.stdout = open(log_file, 'w')
+def basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD_Params, l2, logdir="Assignment3/results", num_threads=4, n_train=49000):
+    arch_test_acc = {i:[] for i in ['architectures', 'test_acc', 'training_time']}
+    for arch in architectures:
+        cfg = arch_cfg[arch]
+        log_file = os.path.join(logdir, f'architecture_basic_{arch}_train_log.txt')
+        orig_stdout = sys.stdout
+        sys.stdout = open(log_file, 'w')
 
-    try:
-        print(f"\nExercise 3 , arch {arch}, {n_train} train, {num_threads} threads")
-        print(f"Training Arch {arch}: f={cfg['f']} nf={cfg['nf']} nh={cfg['nh']}")
-        model = ConvNet(f=cfg['f'], nf=cfg['nf'], nh=cfg['nh'])
-        hist = trainNetwork(model, Xtr, Ytr, ytr, Xv, Yv, yv, GD_Params, l2, smoothing=False, increasing_cyclic_steps=False)
-        test_loss, test_acc = model.compute_loss_accuracy(Xt, yt)
-        print(f"Basic Architecture without increasing cyclic steps : Final test acc: {test_acc:.4f}, training time: {hist['training_time']:.2f}s")
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        traceback.print_exc()
-    finally:
-        sys.stdout.close()
-        sys.stdout = orig_stdout
-        print(f"Training log saved to {log_file}")
-        print("Training completed for architecture", arch)
-        print("Plots/results saved in", logdir)
-
+        try:
+            print(f"\nExercise 3 , arch {arch}, {n_train} train, {num_threads} threads")
+            print(f"Training Arch {arch}: f={cfg['f']} nf={cfg['nf']} nh={cfg['nh']}")
+            model = ConvNet(f=cfg['f'], nf=cfg['nf'], nh=cfg['nh'])
+            hist = trainNetwork(model, Xtr, Ytr, ytr, Xv, Yv, yv, GD_Params, l2, smoothing=False, increasing_cyclic_steps=False)
+            test_loss, test_acc = model.compute_loss_accuracy(Xt, yt)
+            print(f"Basic Architecture without increasing cyclic steps : Final test acc: {test_acc:.4f}, training time: {hist['training_time']:.2f}s")
+            arch_test_acc['architectures'].append(f"Arch{arch}")
+            arch_test_acc['test_acc'].append(test_acc)
+            arch_test_acc['training_time'].append(hist['training_time'])
+            plotting(hist, logdir, arch)
+        except Exception as e:
+            print(f"An error occurred: {e}")
+            traceback.print_exc()
+        finally:
+            sys.stdout.close()
+            sys.stdout = orig_stdout
+            print(f"Training log saved to {log_file}")
+            print("Training completed for architecture", arch)
+            print("Plots/results saved in", logdir)
+    plot_bar_graph(arch_test_acc)
+    print("Basic convolution check done.")
 
 
 
@@ -434,7 +451,6 @@ def basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params,
 #  ----------------------------------------------------------------------------------------------- #
 
 def exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD_Params, l2, logdir="Assignment3/results", num_threads=4, n_train=49000):
-    arch_test_acc = {i:[] for i in ['architectures', 'test_acc', 'training_time']}
 
     for arch in architectures:
         cfg = arch_cfg[arch]
@@ -448,9 +464,6 @@ def exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD
             model = ConvNet(f=cfg['f'], nf=cfg['nf'], nh=cfg['nh'])
             hist = trainNetwork(model, Xtr, Ytr, ytr, Xv, Yv, yv, GD_Params, l2, smoothing=False)
             test_loss, test_acc = model.compute_loss_accuracy(Xt, yt)
-            arch_test_acc['architectures'].append(f"Arch{arch}")
-            arch_test_acc['test_acc'].append(test_acc)
-            arch_test_acc['training_time'].append(hist['training_time'])
             print(f"Final test acc: {test_acc:.4f}")
             save_results(
                 type('Args', (object,), {
@@ -470,7 +483,6 @@ def exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD
             print("Training completed for architecture", arch)
             print("Plots/results saved in", logdir)
 
-    plot_bar_graph(arch_test_acc)
     print("Exercise 3 done.")
 
 #  ----------------------------------------------------------------------------------------------- #
@@ -513,8 +525,8 @@ def exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params, l2, lo
 
 
 if __name__ == "__main__":
-    conv_outputs_mat, Fs_flat = exercise1()
-    exercise2(conv_outputs_mat)
+    # conv_outputs_mat, Fs_flat = exercise1()
+    # exercise2(conv_outputs_mat)
     architectures = [1, 2, 3, 4]
     n_train = 49000
     data_path = 'Datasets/cifar-10-batches-py'
@@ -541,7 +553,7 @@ if __name__ == "__main__":
     print(f"Loading data with {n_train} training samples...")
     Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt = load_cifar(data_path, n_train)
     print(f"Loaded {Xtr.shape[1]} train, {Xv.shape[1]} val, {Xt.shape[1]} test samples")
-    basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
+    basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
     # exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, 
     #           architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
     # cfg = dict(f=4, nf=40, nh=300)

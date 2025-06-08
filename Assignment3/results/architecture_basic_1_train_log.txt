@@ -1,0 +1,19 @@
+
+Exercise 3 , arch 1, 49000 train, 4 threads
+Training Arch 1: f=2 nf=3 nh=50
+Initial validation loss: 2.4013, Initial validation accuracy: 0.0840
+Initial training loss: 2.3873, Initial training accuracy: 0.0938
+Update step 400/4800, Cycle 1/3, Cycle step 400/800, Learning rate: 0.049880, Train loss: 1.6324, Train accuracy: 0.4200, Validation loss: 1.8088, Validation accuracy: 0.3710
+Update step 800/4800, Cycle 1/3, Cycle step 800/800, Learning rate: 0.099875, Train loss: 1.4114, Train accuracy: 0.5100, Validation loss: 1.7070, Validation accuracy: 0.3950
+Update step 1200/4800, Cycle 1/3, Cycle step 1200/800, Learning rate: 0.050130, Train loss: 1.3737, Train accuracy: 0.5700, Validation loss: 1.5591, Validation accuracy: 0.4550
+Update step 1600/4800, Cycle 1/3, Cycle step 1600/800, Learning rate: 0.000135, Train loss: 1.6045, Train accuracy: 0.4600, Validation loss: 1.5074, Validation accuracy: 0.4640
+Update step 2000/4800, Cycle 2/3, Cycle step 400/800, Learning rate: 0.049880, Train loss: 1.2383, Train accuracy: 0.5800, Validation loss: 1.5426, Validation accuracy: 0.4660
+Update step 2400/4800, Cycle 2/3, Cycle step 800/800, Learning rate: 0.099875, Train loss: 1.3341, Train accuracy: 0.5000, Validation loss: 1.5491, Validation accuracy: 0.4390
+Update step 2800/4800, Cycle 2/3, Cycle step 1200/800, Learning rate: 0.050130, Train loss: 1.3035, Train accuracy: 0.5000, Validation loss: 1.4706, Validation accuracy: 0.4770
+Update step 3200/4800, Cycle 2/3, Cycle step 1600/800, Learning rate: 0.000135, Train loss: 1.4377, Train accuracy: 0.4900, Validation loss: 1.4157, Validation accuracy: 0.5000
+Update step 3600/4800, Cycle 3/3, Cycle step 400/800, Learning rate: 0.049880, Train loss: 1.1308, Train accuracy: 0.6600, Validation loss: 1.4557, Validation accuracy: 0.4860
+Update step 4000/4800, Cycle 3/3, Cycle step 800/800, Learning rate: 0.099875, Train loss: 1.2149, Train accuracy: 0.5700, Validation loss: 1.5110, Validation accuracy: 0.4620
+Update step 4400/4800, Cycle 3/3, Cycle step 1200/800, Learning rate: 0.050130, Train loss: 1.2256, Train accuracy: 0.5700, Validation loss: 1.4067, Validation accuracy: 0.4960
+Update step 4800/4800, Cycle 3/3, Cycle step 1600/800, Learning rate: 0.000135, Train loss: 1.3997, Train accuracy: 0.5400, Validation loss: 1.3720, Validation accuracy: 0.4960
+Training completed in 16.19 seconds.
+Basic Architecture without increasing cyclic steps : Final test acc: 0.5149, training time: 16.19s
