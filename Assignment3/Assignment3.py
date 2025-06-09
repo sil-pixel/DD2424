@@ -525,9 +525,9 @@ def exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params, l2, lo
 
 
 if __name__ == "__main__":
-    # conv_outputs_mat, Fs_flat = exercise1()
-    # exercise2(conv_outputs_mat)
-    architectures = [2] #[1, 2, 3, 4]
+    conv_outputs_mat, Fs_flat = exercise1()
+    exercise2(conv_outputs_mat)
+    architectures = [1, 2, 3, 4]
     n_train = 49000
     data_path = 'Datasets/cifar-10-batches-py'
     num_threads = 4
@@ -555,11 +555,11 @@ if __name__ == "__main__":
     print(f"Loading data with {n_train} training samples...")
     Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt = load_cifar(data_path, n_train)
     print(f"Loaded {Xtr.shape[1]} train, {Xv.shape[1]} val, {Xt.shape[1]} test samples")
-    # basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
+    basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
     exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, 
               architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
-    # l2 = 0.0025
-    # GD_Params = dict(n_batch=100, eta_min=1e-5, eta_max=1e-1, n_s=800, n_cycles=4)
-    # exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg[5], GD_Params, l2, logdir, num_threads, n_train)
-    # print("All exercises completed successfully.")
+    l2 = 0.0025
+    GD_Params = dict(n_batch=100, eta_min=1e-5, eta_max=1e-1, n_s=800, n_cycles=4)
+    exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg[5], GD_Params, l2, logdir, num_threads, n_train)
+    print("All exercises completed successfully.")
     

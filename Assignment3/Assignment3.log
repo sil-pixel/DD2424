@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.31)  9 JUN 2025 12:22
+This is pdfTeX, Version 3.141592653-2.6-1.40.27 (TeX Live 2025) (preloaded format=pdflatex 2025.3.31)  9 JUN 2025 14:30
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -534,13 +534,13 @@ l.71   \item M
 File: results/architecture_test_accuracy.png Graphic file (type png)
 <use results/architecture_test_accuracy.png>
 Package pdftex.def Info: results/architecture_test_accuracy.png  used on input 
-line 92.
+line 94.
 (pdftex.def)             Requested size: 328.82707pt x 197.29741pt.
 <results/architecture_training_time.png, id=22, 722.7pt x 433.62pt>
 File: results/architecture_training_time.png Graphic file (type png)
 <use results/architecture_training_time.png>
 Package pdftex.def Info: results/architecture_training_time.png  used on input 
-line 99.
+line 101.
 (pdftex.def)             Requested size: 328.82707pt x 197.29741pt.
 
 
@@ -549,7 +549,7 @@ pdfTeX warning (ext4): destination with the same identifier (name{figure.1}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.103 
+l.105 
        <./results/architecture_test_accuracy.png>]
 <results/architecture_basic_2_learning_rate_plot.png, id=29, 722.7pt x 433.62pt
 >
@@ -557,7 +557,7 @@ File: results/architecture_basic_2_learning_rate_plot.png Graphic file (type pn
 g)
 <use results/architecture_basic_2_learning_rate_plot.png>
 Package pdftex.def Info: results/architecture_basic_2_learning_rate_plot.png  u
-sed on input line 113.
+sed on input line 115.
 (pdftex.def)             Requested size: 281.85587pt x 169.11111pt.
 
 
@@ -566,26 +566,26 @@ pdfTeX warning (ext4): destination with the same identifier (name{figure.2}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.122 
+l.124 
       
 pdfTeX warning (ext4): destination with the same identifier (name{figure.3}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.122 
+l.124 
        <./results/architecture_training_time.png> <./results/architecture_basic
 _2_learning_rate_plot.png>]
 <results/architecture_2_training_plot.png, id=38, 867.24pt x 433.62pt>
 File: results/architecture_2_training_plot.png Graphic file (type png)
 <use results/architecture_2_training_plot.png>
 Package pdftex.def Info: results/architecture_2_training_plot.png  used on inpu
-t line 125.
+t line 127.
 (pdftex.def)             Requested size: 352.31625pt x 176.15768pt.
 <results/architecture_3_training_plot.png, id=39, 867.24pt x 433.62pt>
 File: results/architecture_3_training_plot.png Graphic file (type png)
 <use results/architecture_3_training_plot.png>
 Package pdftex.def Info: results/architecture_3_training_plot.png  used on inpu
-t line 133.
+t line 135.
 (pdftex.def)             Requested size: 352.31625pt x 176.15768pt.
 
 
@@ -594,25 +594,25 @@ pdfTeX warning (ext4): destination with the same identifier (name{figure.4}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.139 ...el={lst:longer_training_runs_accuracies}]
+l.141 ...el={lst:longer_training_runs_accuracies}]
                                                   
 pdfTeX warning (ext4): destination with the same identifier (name{figure.5}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.139 ...el={lst:longer_training_runs_accuracies}]
+l.141 ...el={lst:longer_training_runs_accuracies}]
                                                    <./results/architecture_2_tr
 aining_plot.png> <./results/architecture_3_training_plot.png>]
 Package hyperref Info: bookmark level for unknown lstlisting defaults to 0 on i
-nput line 139.
+nput line 141.
 <results/architecture_updated_2_training_plot.png, id=49, 867.24pt x 433.62pt>
 File: results/architecture_updated_2_training_plot.png Graphic file (type png)
 <use results/architecture_updated_2_training_plot.png>
 Package pdftex.def Info: results/architecture_updated_2_training_plot.png  used
- on input line 149.
+ on input line 151.
 (pdftex.def)             Requested size: 352.31625pt x 176.15768pt.
 
-Overfull \hbox (12.19353pt too wide) in paragraph at lines 156--157
+Overfull \hbox (12.19353pt too wide) in paragraph at lines 158--159
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
@@ -620,7 +620,7 @@ Overfull \hbox (12.19353pt too wide) in paragraph at lines 156--157
 File: results/architecture_4_learning_rate_plot.png Graphic file (type png)
 <use results/architecture_4_learning_rate_plot.png>
 Package pdftex.def Info: results/architecture_4_learning_rate_plot.png  used on
- input line 165.
+ input line 168.
 (pdftex.def)             Requested size: 281.85587pt x 169.11111pt.
 
 
@@ -629,7 +629,7 @@ pdfTeX warning (ext4): destination with the same identifier (name{figure.6}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.169 
+l.172 
        <./results/architecture_updated_2_training_plot.png>]
 <results/architecture_ConvNet_smoothing_training_plot.png, id=64, 867.24pt x 43
 3.62pt>
@@ -637,7 +637,7 @@ File: results/architecture_ConvNet_smoothing_training_plot.png Graphic file (ty
 pe png)
 <use results/architecture_ConvNet_smoothing_training_plot.png>
 Package pdftex.def Info: results/architecture_ConvNet_smoothing_training_plot.p
-ng  used on input line 176.
+ng  used on input line 179.
 (pdftex.def)             Requested size: 352.31625pt x 176.15768pt.
 <results/architecture_ConvNet_no_smoothing_training_plot.png, id=65, 867.24pt x
  433.62pt>
@@ -645,7 +645,7 @@ File: results/architecture_ConvNet_no_smoothing_training_plot.png Graphic file
 (type png)
 <use results/architecture_ConvNet_no_smoothing_training_plot.png>
 Package pdftex.def Info: results/architecture_ConvNet_no_smoothing_training_plo
-t.png  used on input line 183.
+t.png  used on input line 186.
 (pdftex.def)             Requested size: 352.31625pt x 176.15768pt.
 
 
@@ -654,23 +654,17 @@ pdfTeX warning (ext4): destination with the same identifier (name{figure.7}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.187 
+l.190 
       
 pdfTeX warning (ext4): destination with the same identifier (name{figure.8}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.187 
+l.190 
        <./results/architecture_4_learning_rate_plot.png> <./results/architectur
 e_ConvNet_smoothing_training_plot.png>]
-Overfull \hbox (46.21342pt too wide) in paragraph at lines 191--192
-[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
-
- []
-
-
-Overfull \hbox (63.22337pt too wide) in paragraph at lines 192--193
-[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
+Overfull \hbox (0.85356pt too wide) in paragraph at lines 201--202
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
@@ -680,9 +674,28 @@ pdfTeX warning (ext4): destination with the same identifier (name{figure.9}) ha
 s been already used, duplicate ignored
 <argument> ...shipout:D \box_use:N \l_shipout_box 
                                                   \__shipout_drop_firstpage_...
-l.196 \end{document}
-                     <./results/architecture_ConvNet_no_smoothing_training_plot
-.png>] (./Assignment3.aux)
+l.210 I
+        was able to verify the correctness of the above increased cyclic lea...
+ <./results/architecture_ConvNet_no_smoothing_training_plot.png>]
+<results/architecture_ConvNet_no_smoothing_learning_rate_plot.png, id=85, 722.7
+pt x 433.62pt>
+File: results/architecture_ConvNet_no_smoothing_learning_rate_plot.png Graphic 
+file (type png)
+<use results/architecture_ConvNet_no_smoothing_learning_rate_plot.png>
+Package pdftex.def Info: results/architecture_ConvNet_no_smoothing_learning_rat
+e_plot.png  used on input line 214.
+(pdftex.def)             Requested size: 281.85587pt x 169.11111pt.
+
+
+[8
+pdfTeX warning (ext4): destination with the same identifier (name{figure.10}) h
+as been already used, duplicate ignored
+<argument> ...shipout:D \box_use:N \l_shipout_box 
+                                                  \__shipout_drop_firstpage_...
+l.235 
+       <./results/architecture_ConvNet_no_smoothing_learning_rate_plot.png>]
+
+[9] (./Assignment3.aux)
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
@@ -695,10 +708,10 @@ Package rerunfilecheck Info: File `Assignment3.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
- 14930 strings out of 473190
- 234722 string characters out of 5715800
+ 14941 strings out of 473190
+ 235271 string characters out of 5715800
  840019 words of memory out of 5000000
- 37976 multiletter control sequences out of 15000+600000
+ 37984 multiletter control sequences out of 15000+600000
  566919 words of font info for 67 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  75i,11n,79p,560b,1279s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -715,10 +728,10 @@ live/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texl
 ive/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texliv
 e/2025/texmf-dist/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/local/texlive/
 2025/texmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
-Output written on Assignment3.pdf (7 pages, 606929 bytes).
+Output written on Assignment3.pdf (9 pages, 665514 bytes).
 PDF statistics:
- 147 PDF objects out of 1000 (max. 8388607)
- 93 compressed objects within 1 object stream
- 26 named destinations out of 1000 (max. 500000)
- 46 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 160 PDF objects out of 1000 (max. 8388607)
+ 101 compressed objects within 2 object streams
+ 29 named destinations out of 1000 (max. 500000)
+ 51 words of extra memory for PDF output out of 10000 (max. 10000000)
 
