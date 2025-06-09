@@ -33,3 +33,17 @@ Update step 10800/11200, Cycle 3/3, Cycle step 6000/3200, Learning rate: 0.01254
 Update step 11200/11200, Cycle 3/3, Cycle step 6400/3200, Learning rate: 0.000041, Train loss: 0.9633, Train accuracy: 0.6200, Validation loss: 1.1680, Validation accuracy: 0.5860
 Training completed in 31.04 seconds.
 Final test acc: 0.5735
+
+==================================================
+TRAINING SUMMARY
+==================================================
+Arch 2
+Time: 58.46s
+Final val acc: 0.6560
+Final test acc: 0.6351
+Train samples: 49000
+Threads: 4
+LR: 1e-05–0.1
+Cycles: 3
+Batch: 100
+Lambda: 0.003

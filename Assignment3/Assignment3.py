@@ -347,36 +347,36 @@ def save_results(args, GD_Params, lambda_reg, hist, test_acc, arch, logdir="Assi
 
 def plotting(history, logdir="Assignment3/results", arch="convnet"):
     os.makedirs(logdir, exist_ok=True)
-    # plt.figure(figsize=(12, 6))
-    # plt.subplot(1, 2, 1)
-    # plt.plot(history['update_steps'], history['loss_train'], label='Train Loss')
-    # plt.plot(history['update_steps'], history['loss_val'], label='Val Loss')
-    # plt.xlabel('Update Steps')
-    # plt.ylabel('Loss')
-    # plt.title('Loss vs Update Steps')
-    # plt.legend()
-    
-    # plt.subplot(1, 2, 2)
-    # plt.plot(history['update_steps'], history['acc_train'], label='Train Accuracy')
-    # plt.plot(history['update_steps'], history['acc_val'], label='Val Accuracy')
-    # plt.xlabel('Update Steps')
-    # plt.ylabel('Accuracy')
-    # plt.title('Accuracy vs Update Steps')
-    # plt.legend()
-    
-    # plt.tight_layout()
-    # plt.savefig(os.path.join(logdir, f'architecture_{arch}_training_plot.png'))
-    # plt.show()
-
-    plt.figure(figsize=(10, 6))
-    plt.plot(history['update_steps'], history['learning_rates'], label='Learning Rate')
+    plt.figure(figsize=(12, 6))
+    plt.subplot(1, 2, 1)
+    plt.plot(history['update_steps'], history['loss_train'], label='Train Loss')
+    plt.plot(history['update_steps'], history['loss_val'], label='Val Loss')
     plt.xlabel('Update Steps')
-    plt.ylabel('Learning Rate')
-    plt.title('Learning Rate vs Update Steps')
+    plt.ylabel('Loss')
+    plt.title('Loss vs Update Steps')
     plt.legend()
+    
+    plt.subplot(1, 2, 2)
+    plt.plot(history['update_steps'], history['acc_train'], label='Train Accuracy')
+    plt.plot(history['update_steps'], history['acc_val'], label='Val Accuracy')
+    plt.xlabel('Update Steps')
+    plt.ylabel('Accuracy')
+    plt.title('Accuracy vs Update Steps')
+    plt.legend()
+    
     plt.tight_layout()
-    plt.savefig(os.path.join(logdir, f'architecture_basic_{arch}_learning_rate_plot.png'))
+    plt.savefig(os.path.join(logdir, f'architecture_updated_{arch}_training_plot.png'))
     plt.show()
+
+    # plt.figure(figsize=(10, 6))
+    # plt.plot(history['update_steps'], history['learning_rates'], label='Learning Rate')
+    # plt.xlabel('Update Steps')
+    # plt.ylabel('Learning Rate')
+    # plt.title('Learning Rate vs Update Steps')
+    # plt.legend()
+    # plt.tight_layout()
+    # plt.savefig(os.path.join(logdir, f'architecture_{arch}_learning_rate_plot.png'))
+    # plt.show()
 
 def plot_bar_graph(arch_test_acc, logdir="Assignment3/results"):
     os.makedirs(logdir, exist_ok=True)
@@ -454,7 +454,7 @@ def exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD
 
     for arch in architectures:
         cfg = arch_cfg[arch]
-        log_file = os.path.join(logdir, f'architecture_{arch}_train_log.txt')
+        log_file = os.path.join(logdir, f'architecture_updated_{arch}_train_log.txt')
         orig_stdout = sys.stdout
         sys.stdout = open(log_file, 'w')
 
@@ -527,7 +527,7 @@ def exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg, GD_Params, l2, lo
 if __name__ == "__main__":
     # conv_outputs_mat, Fs_flat = exercise1()
     # exercise2(conv_outputs_mat)
-    architectures = [1, 2, 3, 4]
+    architectures = [2] #[1, 2, 3, 4]
     n_train = 49000
     data_path = 'Datasets/cifar-10-batches-py'
     num_threads = 4
@@ -537,9 +537,11 @@ if __name__ == "__main__":
     # Model configs for each architecture
     arch_cfg = {
         1: dict(f=2, nf=3, nh=50),
-        2: dict(f=4, nf=10, nh=50),
+        2: dict(f=4, nf=40, nh=50),
         3: dict(f=8, nf=40, nh=50),
-        4: dict(f=16, nf=160, nh=50)
+        4: dict(f=16, nf=160, nh=50),
+        5: dict(f=4, nf=40, nh=300)
+
     }
     GD_Params = dict(n_batch=100, eta_min=1e-5, eta_max=1e-1, n_s=800, n_cycles=3)
     l2 = 0.003
@@ -553,12 +555,11 @@ if __name__ == "__main__":
     print(f"Loading data with {n_train} training samples...")
     Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt = load_cifar(data_path, n_train)
     print(f"Loaded {Xtr.shape[1]} train, {Xv.shape[1]} val, {Xt.shape[1]} test samples")
-    basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
-    # exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, 
-    #           architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
-    # cfg = dict(f=4, nf=40, nh=300)
+    # basic_conv_check(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
+    exercise3(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, 
+              architectures, arch_cfg, GD_Params, l2, logdir, num_threads, n_train)
     # l2 = 0.0025
     # GD_Params = dict(n_batch=100, eta_min=1e-5, eta_max=1e-1, n_s=800, n_cycles=4)
-    # exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, cfg, GD_Params, l2, logdir, num_threads, n_train)
+    # exercise4(Xtr, Ytr, ytr, Xv, Yv, yv, Xt, Yt, yt, arch_cfg[5], GD_Params, l2, logdir, num_threads, n_train)
     # print("All exercises completed successfully.")
     
